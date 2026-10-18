@@ -1,0 +1,514 @@
+{
+  "empresa": {
+    "nome": "EcoNova Indústria Ltda.",
+    "setor": "Manufatura de embalagens",
+    "cnpj": "12.345.678/0001-90",
+    "colaboradores": 148,
+    "unidade": "Plantagem 1 - Joinville/SC"
+  },
+  "materiais": [
+    {
+      "_id": "m001",
+      "codigo": "INS-001",
+      "nome": "Polietileno de alta densidade (PEAD)",
+      "categoria": "Plástico",
+      "unidade": "kg",
+      "saldo": 1250,
+      "custo_unitario": 8.4,
+      "fornecedor": "Plastiquim",
+      "localizacao": "Galpão A - Prateleira 1",
+      "risco": "Baixo",
+      "descricao": "Resina virgem para produção de garrafas. Reciclável termicamente."
+    },
+    {
+      "_id": "m002",
+      "codigo": "INS-002",
+      "nome": "Papel kraft 90g",
+      "categoria": "Papel",
+      "unidade": "kg",
+      "saldo": 840,
+      "custo_unitario": 5.1,
+      "fornecedor": "Papelaria Sul",
+      "localizacao": "Galpão B - Prateleira 3",
+      "risco": "Baixo",
+      "descricao": "Papel kraft para sacolas e forros. Origem florestal certificada FSC."
+    },
+    {
+      "_id": "m003",
+      "codigo": "INS-003",
+      "nome": "Tinta solvente à base de tolueno",
+      "categoria": "Químico",
+      "unidade": "L",
+      "saldo": 95,
+      "custo_unitario": 42,
+      "fornecedor": "ChemColor",
+      "localizacao": "Sala química - Estante 2",
+      "risco": "Alto",
+      "descricao": "Solvente orgânico volátil. Resíduo perigoso classe I. Requer destinação em incinerador licenciado."
+    },
+    {
+      "_id": "m004",
+      "codigo": "INS-004",
+      "nome": "Alumínio em folhas",
+      "categoria": "Metal",
+      "unidade": "kg",
+      "saldo": 430,
+      "custo_unitario": 19.9,
+      "fornecedor": "MetalForte",
+      "localizacao": "Galpão A - Prateleira 5",
+      "risco": "Baixo",
+      "descricao": "Folhas de alumínio 0,2mm para selagem. Alta demanda de reciclagem."
+    },
+    {
+      "_id": "m005",
+      "codigo": "INS-005",
+      "nome": "Aço carbono estrutural",
+      "categoria": "Metal",
+      "unidade": "kg",
+      "saldo": 2100,
+      "custo_unitario": 11.2,
+      "fornecedor": "SiderBrasil",
+      "localizacao": "Pátio externo - Rack 1",
+      "risco": "Baixo",
+      "descricao": "Perfis para estrutura de esteiras."
+    },
+    {
+      "_id": "m006",
+      "codigo": "INS-006",
+      "nome": "Resíduo de corte de madeira",
+      "categoria": "Orgânico",
+      "unidade": "kg",
+      "saldo": 320,
+      "custo_unitario": 0,
+      "fornecedor": "Interno",
+      "localizacao": "Área de resíduos - Bunker 1",
+      "risco": "Baixo",
+      "descricao": "Serragem e aparas. Destino potencial: compostagem ou briquetes."
+    },
+    {
+      "_id": "m007",
+      "codigo": "INS-007",
+      "nome": "Ácido sulfúrico 98%",
+      "categoria": "Químico",
+      "unidade": "L",
+      "saldo": 40,
+      "custo_unitario": 65.5,
+      "fornecedor": "ChemColor",
+      "localizacao": "Sala química - Estante 1",
+      "risco": "Alto",
+      "descricao": "Uso em processo de limpeza de tanques. Resíduo perigoso."
+    },
+    {
+      "_id": "m008",
+      "codigo": "INS-008",
+      "nome": "PET transparente granulado",
+      "categoria": "Plástico",
+      "unidade": "kg",
+      "saldo": 760,
+      "custo_unitario": 7.8,
+      "fornecedor": "ReciclaPlast",
+      "localizacao": "Galpão A - Prateleira 2",
+      "risco": "Baixo",
+      "descricao": "Granulado de PET virgem para embalagens rígidas."
+    },
+    {
+      "_id": "m009",
+      "codigo": "INS-009",
+      "nome": "Casca de coco seca",
+      "categoria": "Orgânico",
+      "unidade": "un",
+      "saldo": 1500,
+      "custo_unitario": 0.4,
+      "fornecedor": "Cooperativa Local",
+      "localizacao": "Área externa - Tenda 2",
+      "risco": "Baixo",
+      "descricao": "Subproduto para briquetes e insumo de compostagem."
+    },
+    {
+      "_id": "m010",
+      "codigo": "INS-010",
+      "nome": "Óleo queimado de hidráulica",
+      "categoria": "Químico",
+      "unidade": "L",
+      "saldo": 75,
+      "custo_unitario": 0,
+      "fornecedor": "Interno",
+      "localizacao": "Sala química - Estante 3",
+      "risco": "Alto",
+      "descricao": "Óleo lubrificante usado. Resíduo perigoso - coleta por empresa licenciada CETESB."
+    },
+    {
+      "_id": "m011",
+      "codigo": "INS-011",
+      "nome": "Espanador de poliuretano",
+      "categoria": "Plástico",
+      "unidade": "m²",
+      "saldo": 210,
+      "custo_unitario": 32,
+      "fornecedor": "Espumas SA",
+      "localizacao": "Galpão B - Prateleira 1",
+      "risco": "Médio",
+      "descricao": "Espuma técnica para revestimento. Combustível - não descartar em aterro comum."
+    },
+    {
+      "_id": "m012",
+      "codigo": "INS-012",
+      "nome": "Vidro borossilicato quebrado",
+      "categoria": "Vidro",
+      "unidade": "kg",
+      "saldo": 90,
+      "custo_unitario": 3.2,
+      "fornecedor": "Vidraçaria Oeste",
+      "localizacao": "Área de resíduos - Bunker 3",
+      "risco": "Médio",
+      "descricao": "Resíduo de quebra de vidros de teste. Triagem manual."
+    }
+  ],
+  "residuos": [
+    {
+      "_id": "r001",
+      "nome": "Sucata de PEAD",
+      "categoria": "Plástico",
+      "quantidade_kg": 180,
+      "classe": "Não perigoso",
+      "destino_atual": "Reciclagem externa",
+      "gerado_em": "2026-10-01",
+      "fornecedor_destino": "ReciclaPlast"
+    },
+    {
+      "_id": "r002",
+      "nome": "Resíduo de tinta solvente",
+      "categoria": "Químico",
+      "quantidade_kg": 35,
+      "classe": "Perigoso - classe I",
+      "destino_atual": "Incinerador licenciado",
+      "gerado_em": "2026-10-03",
+      "fornecedor_destino": "EcoTermo"
+    },
+    {
+      "_id": "r003",
+      "nome": "Serragem e aparas de madeira",
+      "categoria": "Orgânico",
+      "quantidade_kg": 420,
+      "classe": "Não perigoso",
+      "destino_atual": "Compostagem",
+      "gerado_em": "2026-10-05",
+      "fornecedor_destino": "Cooperativa Local"
+    },
+    {
+      "_id": "r004",
+      "nome": "Sucata de alumínio",
+      "categoria": "Metal",
+      "quantidade_kg": 95,
+      "classe": "Não perigoso",
+      "destino_atual": "Reciclagem externa",
+      "gerado_em": "2026-10-07",
+      "fornecedor_destino": "MetalForte"
+    },
+    {
+      "_id": "r005",
+      "nome": "Óleo queimado hidráulico",
+      "categoria": "Químico",
+      "quantidade_kg": 60,
+      "classe": "Perigoso - classe I",
+      "destino_atual": "Transportadora licenciada",
+      "gerado_em": "2026-10-10",
+      "fornecedor_destino": "ÓleoVerde"
+    },
+    {
+      "_id": "r006",
+      "nome": "Retalhos de papel kraft",
+      "categoria": "Papel",
+      "quantidade_kg": 250,
+      "classe": "Não perigoso",
+      "destino_atual": "Compactador interno",
+      "gerado_em": "2026-10-12",
+      "fornecedor_destino": "Papelaria Sul"
+    },
+    {
+      "_id": "r007",
+      "nome": "Vidro quebrado de teste",
+      "categoria": "Vidro",
+      "quantidade_kg": 40,
+      "classe": "Não perigoso",
+      "destino_atual": "Triagem manual",
+      "gerado_em": "2026-10-14",
+      "fornecedor_destino": "Vidraçaria Oeste"
+    },
+    {
+      "_id": "r008",
+      "nome": "Resíduo de ácido sulfúrico",
+      "categoria": "Químico",
+      "quantidade_kg": 20,
+      "classe": "Perigoso - classe I",
+      "destino_atual": "Neutralização externa",
+      "gerado_em": "2026-10-15",
+      "fornecedor_destino": "EcoTermo"
+    }
+  ],
+  "movimentacoes": [
+    {
+      "_id": "mov001",
+      "material_id": "m001",
+      "tipo": "saida",
+      "quantidade": 320,
+      "unidade": "kg",
+      "motivo": "Produção linha 1",
+      "data": "2026-10-02"
+    },
+    {
+      "_id": "mov002",
+      "material_id": "m003",
+      "tipo": "saida",
+      "quantidade": 55,
+      "unidade": "L",
+      "motivo": "Aplicação em selagem",
+      "data": "2026-10-04"
+    },
+    {
+      "_id": "mov003",
+      "material_id": "m002",
+      "tipo": "entrada",
+      "quantidade": 500,
+      "unidade": "kg",
+      "motivo": "Pedido 8841 - Papelaria Sul",
+      "data": "2026-10-06"
+    },
+    {
+      "_id": "mov004",
+      "material_id": "m010",
+      "tipo": "saida",
+      "quantidade": 60,
+      "unidade": "L",
+      "motivo": "Troca de óleo da prensa 3",
+      "data": "2026-10-10"
+    },
+    {
+      "_id": "mov005",
+      "material_id": "m004",
+      "tipo": "saida",
+      "quantidade": 95,
+      "unidade": "kg",
+      "motivo": "Lote 229 - produção",
+      "data": "2026-10-11"
+    },
+    {
+      "_id": "mov006",
+      "material_id": "m007",
+      "tipo": "saida",
+      "quantidade": 20,
+      "unidade": "L",
+      "motivo": "Limpeza de tanque T-02",
+      "data": "2026-10-13"
+    },
+    {
+      "_id": "mov007",
+      "material_id": "m008",
+      "tipo": "entrada",
+      "quantidade": 400,
+      "unidade": "kg",
+      "motivo": "Pedido 8903 - ReciclaPlast",
+      "data": "2026-10-14"
+    },
+    {
+      "_id": "mov008",
+      "material_id": "m005",
+      "tipo": "saida",
+      "quantidade": 150,
+      "unidade": "kg",
+      "motivo": "Manutenção esteira 2",
+      "data": "2026-10-15"
+    }
+  ],
+  "indicadores": {
+    "meta_zero_waste_pct": 85,
+    "taxa_reciclagem_atual_pct": 72,
+    "co2_evitado_kg_mes": 2450,
+    "economia_mensal_brl": 18750,
+    "residuos_gerados_mes_kg": 1100,
+    "residuos_destinados_corretamente_pct": 94
+  },
+  "politicas": [
+    {
+      "id": "p1",
+      "titulo": "Política de destinação de resíduos perigosos",
+      "texto": "Resíduos classe I (químicos, óleos, solventes) devem ser armazenados em área coberta com dreno de contenção, identificados com rótulo laranja e coletados exclusivamente por transportadora licenciada. Proibido descarte em aterro comum."
+    },
+    {
+      "id": "p2",
+      "titulo": "Meta Zero Waste 2027",
+      "texto": "A empresa compromete-se a reduzir 15% a cada ano o volume de resíduos enviados a aterro, priorizando reuso interno, compostagem e reciclagem. Meta final: 85% de aproveitamento até 2027."
+    },
+    {
+      "id": "p3",
+      "titulo": "Boas práticas de separação na origem",
+      "texto": "Todos os postos de trabalho possuem triagem em 4 categorias: plástico, papel, metal e orgânico. Resíduos perigosos seguem fluxo separado com ficha de movimentação obrigatória."
+    },
+    {
+      "id": "p4",
+      "titulo": "Fornecedor preferencial de destinação",
+      "texto": "Priorizar parceiros com certificação ISO 14001. Para resíduos de alumínio e PET, usar sempre parceiros já homologados (MetalForte e ReciclaPlast) para manter rastreabilidade de laudos."
+    }
+  ],
+  "auditorias": [
+    {
+      "_id": "a001",
+      "evento": "Análise de estoque",
+      "detalhe": "Agent verificou 12 materiais",
+      "data": "2026-10-15T14:32:00.000Z",
+      "usuario": "sistema"
+    },
+    {
+      "_id": "a002",
+      "evento": "Consulta RAG",
+      "detalhe": "Pergunta sobre destinação de solvente",
+      "data": "2026-10-15T15:10:00.000Z",
+      "usuario": "operador1"
+    },
+    {
+      "_id": "4d743be5-70ae-4445-829c-9a428c2d4ef8",
+      "created_at": "2026-10-16T20:16:34.047Z",
+      "updated_at": "2026-10-16T20:16:34.047Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Quais materiais são de risco alto?\" (5 docs, ollama, 3542ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "6ab6a71b-3eda-495a-92d1-d69584389725",
+      "created_at": "2026-10-16T20:17:24.729Z",
+      "updated_at": "2026-10-16T20:17:24.729Z",
+      "evento": "Análise de estoque",
+      "detalhe": "Agente analisou 12 materiais (ollama, 16626ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "175c6d24-4264-4860-b697-bbf01d640d5b",
+      "created_at": "2026-10-16T20:20:26.843Z",
+      "updated_at": "2026-10-16T20:20:26.843Z",
+      "evento": "Reindexação vetorial",
+      "detalhe": "32 documentos, 246 termos",
+      "usuario": "sistema"
+    },
+    {
+      "_id": "936ce8df-1c6f-4b1a-a4e9-d5b4d87107a8",
+      "created_at": "2026-10-16T20:24:39.182Z",
+      "updated_at": "2026-10-16T20:24:39.182Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Qual o saldo de plásticos no estoque?\" (5 docs, ollama, 2319ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "11202756-3af3-4892-ae55-88e26ba90bfa",
+      "created_at": "2026-10-16T20:27:14.070Z",
+      "updated_at": "2026-10-16T20:27:14.070Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Qual o saldo de plásticos no estoque?\" (6 docs, ollama, 1617ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "658aa6a0-05bb-44e7-96f9-715a293a48dd",
+      "created_at": "2026-10-16T20:27:24.535Z",
+      "updated_at": "2026-10-16T20:27:24.535Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Como destinar o solvente perigoso?\" (6 docs, ollama, 4039ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "5f2f86d4-75c4-4896-83c4-c2bc39f72ce7",
+      "created_at": "2026-10-16T20:27:28.198Z",
+      "updated_at": "2026-10-16T20:27:28.198Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Quais materiais são de risco alto?\" (6 docs, ollama, 3640ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "83632689-d7be-49d7-9c14-d2d8b50bd299",
+      "created_at": "2026-10-16T20:27:42.269Z",
+      "updated_at": "2026-10-16T20:27:42.269Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Como melhorar a taxa de reciclagem?\" (4 docs, ollama, 14048ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "f5868160-3926-4e64-a15b-27b1d494bb7c",
+      "created_at": "2026-10-16T20:29:18.657Z",
+      "updated_at": "2026-10-16T20:29:18.657Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Qual o saldo de plásticos no estoque?\" (6 docs, ollama, 1422ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "585a7586-c7fa-4355-8643-7e81b550fbc0",
+      "created_at": "2026-10-18T21:15:42.477Z",
+      "updated_at": "2026-10-18T21:15:42.477Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Como melhorar a taxa de reciclagem?\" (4 docs, ollama, 8795ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "be132405-0a80-4320-a2b3-52f2eeb5193c",
+      "created_at": "2026-10-18T21:16:00.201Z",
+      "updated_at": "2026-10-18T21:16:00.201Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Quais materiais são de risco alto?\" (6 docs, ollama, 3331ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "b751d5af-1132-4d66-a4d4-0b76677b8e2a",
+      "created_at": "2026-10-18T21:16:58.633Z",
+      "updated_at": "2026-10-18T21:16:58.633Z",
+      "evento": "Análise de estoque",
+      "detalhe": "Agente analisou 12 materiais (ollama, 16186ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "c0bfed9e-53e1-4e6e-8377-a4d25cfa5b17",
+      "created_at": "2026-10-18T21:20:32.916Z",
+      "updated_at": "2026-10-18T21:20:32.916Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"como posso pegar esses residuos e transformar em lucro?\" (6 docs, ollama, 7450ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "882a0341-3b42-405f-b09e-45a2f775192e",
+      "created_at": "2026-10-18T21:29:44.914Z",
+      "updated_at": "2026-10-18T21:29:44.914Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Quais materiais sao de risco alto?\" (6 docs, ollama, 5292ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "ca92a7f3-eeda-4e24-8fc1-6386ede1cc97",
+      "created_at": "2026-10-18T21:29:57.854Z",
+      "updated_at": "2026-10-18T21:29:57.854Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"Quais materiais sao de risco alto?\" (6 docs, ollama, 2383ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "1cae95ca-88c6-4dc5-bb76-a9735bdb8565",
+      "created_at": "2026-10-18T21:30:33.486Z",
+      "updated_at": "2026-10-18T21:30:33.486Z",
+      "evento": "Consulta RAG",
+      "detalhe": "\"E o saldo de plasticos?\" (6 docs, ollama, 3160ms)",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "b75e6afb-a99d-44f8-8d77-17c482778bb3",
+      "created_at": "2026-10-18T21:30:33.660Z",
+      "updated_at": "2026-10-18T21:30:33.660Z",
+      "evento": "Exclusão de conversa",
+      "detalhe": "id 12c1be21-6f57-4f10-adfa-bf7a1ed7602c",
+      "usuario": "usuario-web"
+    },
+    {
+      "_id": "236d509a-69df-495c-88f6-cafc0f32312d",
+      "created_at": "2026-10-18T21:30:33.668Z",
+      "updated_at": "2026-10-18T21:30:33.668Z",
+      "evento": "Exclusão de conversa",
+      "detalhe": "id ebd6d311-2b86-43b6-8ac6-bfa045a132db",
+      "usuario": "usuario-web"
+    }
+  ],
+  "conversas": []
+}

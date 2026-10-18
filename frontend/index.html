@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="ReSource - Gestão Inteligente e Zero Waste com IA">
+  <meta name="theme-color" content="#0b1211">
+  <title>ReSource — Gestão Zero Waste com IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark">R</div>
+      <div>
+        <strong>ReSource</strong>
+        <span>Gestão Inteligente · Zero Waste</span>
+      </div>
+    </div>
+    <div class="status-pills">
+      <span class="pill" id="pillMongo" title="Banco legado simulado">MongoDB</span>
+      <span class="pill" id="pillVector" title="Banco vetorial (RAG)">Vetorial</span>
+      <span class="pill" id="pillOllama" title="Agente de IA">Ollama</span>
+    </div>
+  </header>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-view="dashboard">Dashboard</button>
+    <button class="tab" data-view="estoque">Estoque</button>
+    <button class="tab" data-view="residuos">Resíduos</button>
+    <button class="tab" data-view="chat">Agente IA</button>
+    <button class="tab" data-view="auditoria">Auditoria</button>
+  </nav>
+
+  <main class="container">
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <div class="view-head">
+        <div>
+          <h1>Dashboard ambiental</h1>
+          <p class="sub" id="empresaNome">—</p>
+        </div>
+        <button class="btn ghost" id="btnRefreshDash">Atualizar</button>
+      </div>
+
+      <div class="kpis" id="kpis"></div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Resíduos por categoria (kg)</h3>
+          <div class="bars" id="barsResiduos"></div>
+        </div>
+        <div class="card">
+          <h3>Últimas movimentações</h3>
+          <table class="table" id="tblMov">
+            <thead><tr><th>Data</th><th>Material</th><th>Tipo</th><th>Qtd</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card highlight">
+        <div class="row-between">
+          <div>
+            <h3>Relatório executivo com Agente IA</h3>
+            <p class="sub">RF01 — o agente lê o MongoDB simulado e gera análise de estoque, riscos e recomendações.</p>
+          </div>
+          <button class="btn primary" id="btnAnalise">Analisar com IA</button>
+        </div>
+        <div class="spinner hidden" id="analiseSpinner"></div>
+        <div class="report hidden" id="analiseReport"></div>
+      </div>
+    </section>
+
+    <!-- ============ ESTOQUE ============ -->
+    <section class="view" id="view-estoque">
+      <div class="view-head">
+        <div>
+          <h1>Insumos e estoque</h1>
+          <p class="sub">RF04 — gestão de materiais alimentando a pipeline de IA (RF02).</p>
+        </div>
+        <button class="btn primary" id="btnNovoMaterial">+ Novo material</button>
+      </div>
+
+      <div class="filters">
+        <input type="search" id="buscaMaterial" placeholder="Buscar por nome, código ou descrição…">
+        <select id="filtroCategoria">
+          <option value="">Todas as categorias</option>
+        </select>
+        <button class="btn ghost" id="btnReindex" title="RF02 — reindexa os documentos no banco vetorial">Reindexar RAG</button>
+        <span class="badge" id="badgeIndex"></span>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table" id="tblMateriais">
+          <thead>
+            <tr><th>Código</th><th>Material</th><th>Categoria</th><th>Saldo</th><th>Custo unit.</th><th>Risco</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="card hidden" id="formMaterial">
+        <h3 id="formMaterialTitulo">Novo material</h3>
+        <form id="formMat" class="form-grid">
+          <input type="hidden" name="_id">
+          <label>Nome *<input name="nome" required></label>
+          <label>Categoria *
+            <select name="categoria" required>
+              <option>Plástico</option><option>Papel</option><option>Metal</option>
+              <option>Químico</option><option>Orgânico</option><option>Vidro</option>
+            </select>
+          </label>
+          <label>Unidade<input name="unidade" value="kg"></label>
+          <label>Saldo<input name="saldo" type="number" step="any" value="0"></label>
+          <label>Custo unitário (R$)<input name="custo_unitario" type="number" step="any" value="0"></label>
+          <label>Fornecedor<input name="fornecedor"></label>
+          <label>Localização<input name="localizacao"></label>
+          <label>Risco
+            <select name="risco"><option>Baixo</option><option>Médio</option><option>Alto</option></select>
+          </label>
+          <label class="span2">Descrição<textarea name="descricao" rows="2"></textarea></label>
+          <div class="span2 actions">
+            <button type="submit" class="btn primary">Salvar</button>
+            <button type="button" class="btn ghost" id="btnCancelForm">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ RESÍDUOS ============ -->
+    <section class="view" id="view-residuos">
+      <div class="view-head">
+        <div>
+          <h1>Resíduos e destinações</h1>
+          <p class="sub">Classificação e destinação sustentável gerenciada pelo agente.</p>
+        </div>
+        <button class="btn primary" id="btnNovoResiduo">+ Registrar resíduo</button>
+      </div>
+
+      <div class="cards-residuos" id="gridResiduos"></div>
+
+      <div class="card hidden" id="formResiduo">
+        <h3>Registrar resíduo</h3>
+        <form id="formRes" class="form-grid">
+          <label>Nome *<input name="nome" required></label>
+          <label>Categoria
+            <select name="categoria"><option>Plástico</option><option>Papel</option><option>Metal</option><option>Químico</option><option>Orgânico</option><option>Vidro</option></select>
+          </label>
+          <label>Quantidade (kg)<input name="quantidade_kg" type="number" step="any" value="0"></label>
+          <label>Classe
+            <select name="classe"><option>Não perigoso</option><option>Perigoso - classe I</option></select>
+          </label>
+          <label>Destino atual<input name="destino_atual"></label>
+          <label>Parceiro<input name="fornecedor_destino"></label>
+          <div class="span2 actions">
+            <button type="submit" class="btn primary">Registrar</button>
+            <button type="button" class="btn ghost" id="btnCancelRes">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ============ CHAT / AGENTE IA ============ -->
+    <section class="view" id="view-chat">
+      <div class="view-head">
+        <div>
+          <h1>Consultor RAG</h1>
+          <p class="sub">RF03 — chat com LLM (Ollama) + recuperação semântica sobre os dados internos.</p>
+        </div>
+        <div class="ollama-status" id="ollamaStatus">verificando…</div>
+      </div>
+
+      <div class="chat-layout">
+        <aside class="chat-side">
+          <button class="btn primary" id="btnNewChat">+ Nova conversa</button>
+          <div class="chat-list" id="chatList">
+            <div class="empty side-empty">Nenhuma conversa ainda.</div>
+          </div>
+        </aside>
+
+        <div class="chat-card">
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="msg bot">
+              <div class="avatar">IA</div>
+              <div class="msg-body">Olá! Sou o agente <strong>ReSource</strong>. Pergunte sobre estoque, destinação de resíduos, políticas internas ou riscos — respondo com base nos dados reais da empresa (MongoDB simulado + busca semântica).</div>
+            </div>
+          </div>
+
+          <div class="suggestions" id="suggestions">
+            <button class="chip">Como destinar o solvente perigoso?</button>
+            <button class="chip">Qual o saldo de plásticos no estoque?</button>
+            <button class="chip">Como melhorar a taxa de reciclagem?</button>
+            <button class="chip">Quais materiais são de risco alto?</button>
+          </div>
+
+          <form class="chat-form" id="chatForm">
+            <textarea id="chatInput" rows="1" placeholder="Pergunte ao agente…" required></textarea>
+            <button type="submit" class="btn primary" id="btnSend">Enviar</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AUDITORIA ============ -->
+    <section class="view" id="view-auditoria">
+      <div class="view-head">
+        <div>
+          <h1>Auditoria do agente</h1>
+          <p class="sub">RF06 — histórico de análises, consultas e operações (rastreabilidade).</p>
+        </div>
+        <button class="btn ghost" id="btnRefreshAudit">Atualizar</button>
+      </div>
+      <div class="table-wrap">
+        <table class="table" id="tblAudit">
+          <thead><tr><th>Data/hora</th><th>Evento</th><th>Detalhe</th><th>Usuário</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="actions" style="margin-top:16px">
+        <button class="btn ghost" id="btnReset">Restaurar dados de demonstração</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>A3 · Lucas Zorzetti · Levi Laghetto · Isabela Munhoz</span>
+    <span>Plataforma ReSource — MVP (MongoDB simulado + Ollama)</span>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
