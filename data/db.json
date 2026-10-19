@@ -470,45 +470,20 @@
       "usuario": "usuario-web"
     },
     {
-      "_id": "882a0341-3b42-405f-b09e-45a2f775192e",
-      "created_at": "2026-10-18T21:29:44.914Z",
-      "updated_at": "2026-10-18T21:29:44.914Z",
+      "_id": "27b202aa-b5ca-41a6-b533-140e60c30ed9",
+      "created_at": "2026-10-19T22:16:27.727Z",
+      "updated_at": "2026-10-19T22:16:27.727Z",
       "evento": "Consulta RAG",
-      "detalhe": "\"Quais materiais sao de risco alto?\" (6 docs, ollama, 5292ms)",
+      "detalhe": "\"Como destinar o solvente perigoso?\" (6 docs, ollama, 5229ms)",
       "usuario": "usuario-web"
     },
     {
-      "_id": "ca92a7f3-eeda-4e24-8fc1-6386ede1cc97",
-      "created_at": "2026-10-18T21:29:57.854Z",
-      "updated_at": "2026-10-18T21:29:57.854Z",
+      "_id": "bd9bc825-e65c-4171-bf0c-600f486bcf18",
+      "created_at": "2026-10-19T22:21:18.803Z",
+      "updated_at": "2026-10-19T22:21:18.803Z",
       "evento": "Consulta RAG",
-      "detalhe": "\"Quais materiais sao de risco alto?\" (6 docs, ollama, 2383ms)",
-      "usuario": "usuario-web"
-    },
-    {
-      "_id": "1cae95ca-88c6-4dc5-bb76-a9735bdb8565",
-      "created_at": "2026-10-18T21:30:33.486Z",
-      "updated_at": "2026-10-18T21:30:33.486Z",
-      "evento": "Consulta RAG",
-      "detalhe": "\"E o saldo de plasticos?\" (6 docs, ollama, 3160ms)",
-      "usuario": "usuario-web"
-    },
-    {
-      "_id": "b75e6afb-a99d-44f8-8d77-17c482778bb3",
-      "created_at": "2026-10-18T21:30:33.660Z",
-      "updated_at": "2026-10-18T21:30:33.660Z",
-      "evento": "Exclusão de conversa",
-      "detalhe": "id 12c1be21-6f57-4f10-adfa-bf7a1ed7602c",
-      "usuario": "usuario-web"
-    },
-    {
-      "_id": "236d509a-69df-495c-88f6-cafc0f32312d",
-      "created_at": "2026-10-18T21:30:33.668Z",
-      "updated_at": "2026-10-18T21:30:33.668Z",
-      "evento": "Exclusão de conversa",
-      "detalhe": "id ebd6d311-2b86-43b6-8ac6-bfa045a132db",
+      "detalhe": "\"Como destinar o solvente perigoso?\" (6 docs, ollama, 3807ms)",
       "usuario": "usuario-web"
     }
-  ],
-  "conversas": []
+  ]
 }

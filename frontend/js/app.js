@@ -246,7 +246,7 @@ $('#formRes').addEventListener('submit', async (e) => {
 let history = [];
 let currentChatId = null;
 
-const WELCOME_HTML = 'Olá! Sou o agente <strong>ReSource</strong>. Pergunte sobre estoque, destinação de resíduos, políticas internas ou riscos — respondo com base nos dados reais da empresa (MongoDB simulado + busca semântica).';
+const WELCOME_HTML = 'Olá! Sou o agente <strong>ReSource</strong>. Pergunte sobre estoque, destinação de resíduos, políticas internas ou riscos — respondo com base nos dados reais da empresa.';
 
 function addMsg(role, html, meta) {
   const el = document.createElement('div');
