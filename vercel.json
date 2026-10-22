@@ -4,7 +4,7 @@
   "functions": {
     "api/index.js": {
       "maxDuration": 120,
-      "includeFiles": ["data/seed.json"]
+      "includeFiles": "data/seed.json"
     }
   },
   "rewrites": [

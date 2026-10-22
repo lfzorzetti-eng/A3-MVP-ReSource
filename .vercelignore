@@ -1,0 +1,13 @@
+# credenciais - NUNCA enviar para a Vercel
+.env
+.env.local
+.env.*.local
+
+# banco simulado local (o deploy usa MongoDB Atlas)
+data/db.json
+
+# dependências (a Vercel instala no build) e metadados
+node_modules
+.git
+.DS_Store
+*.log

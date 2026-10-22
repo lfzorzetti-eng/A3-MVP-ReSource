@@ -9,7 +9,17 @@
  */
 
 const assert = require('assert');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+
+let MongoMemoryServer;
+try {
+  ({ MongoMemoryServer } = require('mongodb-memory-server'));
+} catch {
+  console.error('\n[smoke] Falta a dependência de teste. Instale sem salvar no package.json:\n');
+  console.error('    npm i -D mongodb-memory-server --no-save\n');
+  console.error('(ela fica fora do package.json de propósito: o postinstall baixa um binário');
+  console.error(' do MongoDB e quebraria o build da Vercel)\n');
+  process.exit(1);
+}
 
 const ADMIN_TOKEN = 'token-de-teste';
 
