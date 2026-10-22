@@ -43,10 +43,10 @@ function docToBOW(tokens) {
   return bow;
 }
 
-function buildCorpus() {
+async function buildCorpus() {
   const docs = [];
 
-  for (const m of db.collection('materiais').all()) {
+  for (const m of await db.collection('materiais').all()) {
     docs.push({
       id: `material:${m._id}`,
       collection: 'materiais',
@@ -54,7 +54,7 @@ function buildCorpus() {
       payload: m,
     });
   }
-  for (const r of db.collection('residuos').all()) {
+  for (const r of await db.collection('residuos').all()) {
     docs.push({
       id: `residuo:${r._id}`,
       collection: 'residuos',
@@ -62,7 +62,7 @@ function buildCorpus() {
       payload: r,
     });
   }
-  for (const p of db.collection('politicas').all()) {
+  for (const p of await db.collection('politicas').all()) {
     docs.push({
       id: `politica:${p.id}`,
       collection: 'politicas',
@@ -70,8 +70,8 @@ function buildCorpus() {
       payload: p,
     });
   }
-  for (const mv of db.collection('movimentacoes').all()) {
-    const mat = db.collection('materiais').findOne({ _id: mv.material_id });
+  for (const mv of await db.collection('movimentacoes').all()) {
+    const mat = await db.collection('materiais').findOne({ _id: mv.material_id });
     docs.push({
       id: `mov:${mv._id}`,
       collection: 'movimentacoes',
@@ -83,8 +83,8 @@ function buildCorpus() {
   return docs;
 }
 
-function rebuild() {
-  const docs = buildCorpus();
+async function rebuild() {
+  const docs = await buildCorpus();
   vocab = new Map();
   const df = new Map();
 
@@ -143,8 +143,8 @@ function cosine(a, b) {
   return s;
 }
 
-function search(query, topK = 4, collectionFilter = null) {
-  if (!index.length) rebuild();
+async function search(query, topK = 4, collectionFilter = null) {
+  if (!index.length) await rebuild();
   const qv = embedQuery(query);
   const scored = index
     .filter((d) => !collectionFilter || d.collection === collectionFilter)

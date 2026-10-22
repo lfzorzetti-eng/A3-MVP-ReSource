@@ -1,43 +1,56 @@
 /**
  * Cliente Ollama - agente de IA do MVP.
- * Usa a API local do Ollama (http://localhost:11434) com fallback
- * para respostas determinísticas caso o Ollama não esteja disponível.
+ * Usa a API do Ollama (local http://localhost:11434 ou cloud https://ollama.com)
+ * com fallback para respostas determinísticas caso o Ollama não esteja disponível.
+ *
+ * O mesmo protocolo serve para local e cloud:
+ *   local: OLLAMA_URL=http://localhost:11434  (sem autenticação)
+ *   cloud: OLLAMA_URL=https://ollama.com + OLLAMA_API_KEY (Authorization: Bearer)
  */
 
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
+const OLLAMA_URL = (process.env.OLLAMA_URL || 'http://localhost:11434').replace(/\/+$/, '');
 const OLLAMA_MODEL = process.env.OLLAMA_MODEL || 'llama3.2';
+const OLLAMA_API_KEY = (process.env.OLLAMA_API_KEY || '').trim();
+const HEALTH_TTL_MS = Number(process.env.OLLAMA_HEALTH_TTL_MS || 15000);
 
 let available = null; // null = desconhecido, true/false cacheado
+let lastCheck = 0;
 
-async function checkHealth(timeoutMs = 2500) {
-  if (available !== null) return available;
+function authHeaders(extra = {}) {
+  const headers = { 'Content-Type': 'application/json', ...extra };
+  if (OLLAMA_API_KEY) headers.Authorization = `Bearer ${OLLAMA_API_KEY}`;
+  return headers;
+}
+
+async function checkHealth(timeoutMs = 8000) {
+  const agora = Date.now();
+  if (available !== null && agora - lastCheck < HEALTH_TTL_MS) return available;
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeoutMs);
-    const res = await fetch(`${OLLAMA_URL}/api/tags`, { signal: ctrl.signal });
+    const res = await fetch(`${OLLAMA_URL}/api/tags`, { signal: ctrl.signal, headers: authHeaders() });
     clearTimeout(t);
     available = res.ok;
   } catch {
     available = false;
   }
+  lastCheck = Date.now();
   return available;
 }
 
 function invalidateCache() {
   available = null;
+  lastCheck = 0;
 }
 
 /**
  * Gera uma resposta do agente de IA.
+ * Não faz pre-flight de health: a própria chamada ao LLM é a fonte da verdade
+ * (um probe lento no cold start não deve derrubar a resposta para o fallback).
  * @param {Array<{role:string, content:string}>} messages
- * @param {object} opts - { temperature, stream:false, format:'json' }
+ * @param {object} opts - { temperature, timeoutMs, model, format:'json' }
  */
 async function chat(messages, opts = {}) {
-  const ok = await checkHealth();
-  if (!ok) {
-    return { text: fallback(messages), source: 'fallback', model: 'rule-based' };
-  }
-
   try {
     const body = {
       model: opts.model || OLLAMA_MODEL,
@@ -51,7 +64,7 @@ async function chat(messages, opts = {}) {
     const t = setTimeout(() => ctrl.abort(), opts.timeoutMs || 45000);
     const res = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: authHeaders(),
       body: JSON.stringify(body),
       signal: ctrl.signal,
     });
@@ -59,17 +72,20 @@ async function chat(messages, opts = {}) {
 
     if (!res.ok) throw new Error(`Ollama HTTP ${res.status}`);
     const data = await res.json();
+    available = true;
+    lastCheck = Date.now();
     return { text: data.message?.content?.trim() || '', source: 'ollama', model: body.model };
   } catch (e) {
     console.warn('[ollama] Erro:', e.message, '- usando fallback');
     available = false;
+    lastCheck = Date.now();
     return { text: fallback(messages), source: 'fallback', model: 'rule-based', error: e.message };
   }
 }
 
 async function listModels() {
   try {
-    const res = await fetch(`${OLLAMA_URL}/api/tags`);
+    const res = await fetch(`${OLLAMA_URL}/api/tags`, { headers: authHeaders() });
     if (!res.ok) return [];
     const data = await res.json();
     return (data.models || []).map((m) => m.name);
@@ -105,4 +121,12 @@ function fallback(messages) {
   return `Sou o agente ReSource. Respondo com base nos dados internos da empresa (MongoDB) recuperados via busca semântica.\n\n${hasCtx ? 'Contexto encontrado:\n' + ctxBlock.slice(0, 700) : 'Não encontrei contexto relevante no banco para essa pergunta.'}\n\n(Resposta gerada pelo fallback local. Inicie o Ollama em http://localhost:11434 e use o modelo llama3.2 para respostas reais do LLM.)`;
 }
 
-module.exports = { chat, checkHealth, listModels, invalidateCache, OLLAMA_URL, OLLAMA_MODEL };
+/** true quando apontando para o Ollama Cloud (https://ollama.com). */
+function isCloud() {
+  return /^https?:\/\/(www\.)?ollama\.com/i.test(OLLAMA_URL);
+}
+
+module.exports = {
+  chat, checkHealth, listModels, invalidateCache, isCloud,
+  OLLAMA_URL, OLLAMA_MODEL, OLLAMA_API_KEY: !!OLLAMA_API_KEY,
+};

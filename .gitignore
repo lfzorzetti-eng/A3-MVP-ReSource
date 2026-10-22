@@ -1,0 +1,18 @@
+# dependências
+node_modules/
+
+# banco local simulado (gerado em tempo de execução)
+data/db.json
+
+# vercel
+.vercel/
+
+# variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# logs / sistema
+*.log
+npm-debug.log*
+.DS_Store
