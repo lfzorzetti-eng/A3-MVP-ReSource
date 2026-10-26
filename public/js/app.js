@@ -1,23 +1,20 @@
 /* ReSource MVP — frontend */
+const SESSION_KEY = 'resource_session';
 const ADMIN_TOKEN_KEY = 'resource_admin_token';
-const adminToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
-let adminResetProtegido = false;
 
-const api = async (path, opts = {}) => {
-  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
-  const token = adminToken();
-  if (token) headers['x-admin-token'] = token;
-  const res = await fetch(`/api${path}`, {
-    ...opts,
-    headers,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
-  });
-  if (!res.ok) {
-    const err = new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
-    err.status = res.status;
-    throw err;
-  }
-  return res.json();
+let currentUser = null;
+let currentSessionToken = '';
+let adminResetProtegido = false;
+let statusTimer = null;
+
+const adminToken = () => sessionStorage.getItem(ADMIN_TOKEN_KEY) || '';
+const can = (permission) => !!currentUser &&
+  (currentUser.permissions.includes('*') || currentUser.permissions.includes(permission));
+
+const initials = (name) => {
+  const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return '??';
+  return (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
 };
 
 const $ = (s) => document.querySelector(s);
@@ -26,6 +23,255 @@ const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<
 
 const fmtBRL = (v) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 });
 const fmtNum = (v) => Number(v).toLocaleString('pt-BR');
+
+/* ================= sessão ================= */
+function readSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(token, user) {
+  currentSessionToken = token;
+  currentUser = user;
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ token, user }));
+}
+
+function clearSession() {
+  currentSessionToken = '';
+  currentUser = null;
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+}
+
+function toast(message, type = 'error') {
+  let box = document.getElementById('toastBox');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'toastBox';
+    box.className = 'toast-box';
+    document.body.appendChild(box);
+  }
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = message;
+  box.appendChild(el);
+  setTimeout(() => el.remove(), 4500);
+}
+
+const api = async (path, opts = {}) => {
+  const { adminToken: admin, skipAuthRedirect, ...fetchOpts } = opts;
+  const headers = { 'Content-Type': 'application/json', ...(fetchOpts.headers || {}) };
+  if (currentSessionToken) headers.Authorization = `Bearer ${currentSessionToken}`;
+  if (admin) headers['x-admin-token'] = admin;
+
+  const res = await fetch(`/api${path}`, {
+    ...fetchOpts,
+    headers,
+    body: fetchOpts.body ? JSON.stringify(fetchOpts.body) : undefined,
+  });
+
+  if (res.status === 401 && !skipAuthRedirect) {
+    forceLogout('Sua sessão expirou. Entre novamente.');
+    throw new Error('sessão expirada');
+  }
+
+  if (!res.ok) {
+    const payload = await res.json().catch(() => ({}));
+    const err = new Error(payload.error || `HTTP ${res.status}`);
+    err.status = res.status;
+    if (res.status === 403 || res.status === 429) toast(err.message);
+    throw err;
+  }
+  return res.json();
+};
+
+/* ================= login / sessão ================= */
+function setLoginError(message = '', tone = 'error') {
+  const el = $('#loginError');
+  if (!el) return;
+  el.textContent = message;
+  el.classList.toggle('hidden', !message);
+  el.classList.toggle('notice', tone === 'notice');
+}
+
+function showLogin(message = '', tone = 'error') {
+  document.body.classList.remove('auth-checking');
+  document.body.classList.add('auth-locked');
+  setLoginError(message, tone);
+  setTimeout(() => $('#loginEmail')?.focus(), 60);
+}
+
+function showApp() {
+  document.body.classList.remove('auth-checking', 'auth-locked');
+}
+
+function clearAppData() {
+  if (statusTimer) {
+    clearInterval(statusTimer);
+    statusTimer = null;
+  }
+  resetChat();
+  $('#kpis').innerHTML = '';
+  $('#tblMov tbody').innerHTML = '';
+  $('#tblMateriais tbody').innerHTML = '';
+  $('#gridResiduos').innerHTML = '';
+  $('#chatList').innerHTML = '<div class="empty side-empty">Nenhuma conversa ainda.</div>';
+  $('#tblAudit tbody').innerHTML = '';
+  $('#analiseReport').classList.add('hidden');
+  $('#analiseSpinner').classList.add('hidden');
+  $('#formMaterial').classList.add('hidden');
+  $('#formResiduo').classList.add('hidden');
+  $('#formMat').reset();
+  $('#formRes').reset();
+}
+
+function forceLogout(message) {
+  clearSession();
+  clearAppData();
+  showLogin(message);
+}
+
+function applyUserUI() {
+  if (!currentUser) return;
+  $('#userAvatar').textContent = currentUser.initials || initials(currentUser.name);
+  $('#userAvatar').className = `user-avatar role-${currentUser.role}`;
+  $('#userName').textContent = currentUser.name;
+  $('#userRole').textContent = `${currentUser.roleLabel} · ${currentUser.sector}`;
+
+  const readOnly = !can('materiais:write') && !can('residuos:write');
+  $('#readonlyChip').classList.toggle('hidden', !readOnly);
+
+  $('#btnNovoMaterial').classList.toggle('hidden', !can('materiais:write'));
+  $('#btnReindex').classList.toggle('hidden', !can('rag:reindex'));
+  $('#btnNovoResiduo').classList.toggle('hidden', !can('residuos:write'));
+  $('#btnReset').classList.toggle('hidden', !can('demo:reset'));
+
+  if (!can('materiais:write')) $('#formMaterial').classList.add('hidden');
+  if (!can('residuos:write')) $('#formResiduo').classList.add('hidden');
+}
+
+async function loginWith(email, password) {
+  if (!email || !password) {
+    setLoginError('Informe e-mail e senha.');
+    return;
+  }
+  const btn = $('#btnLogin');
+  btn.disabled = true;
+  btn.textContent = 'Entrando…';
+  setLoginError('');
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    writeSession(data.token, data.user);
+    $('#loginPassword').value = '';
+    showApp();
+    startApp();
+  } catch (e) {
+    setLoginError(e.message || 'Não foi possível entrar.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar';
+  }
+}
+
+async function loadDemoUsers() {
+  const box = $('#demoUsers');
+  try {
+    const res = await fetch('/api/auth/demo-users');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.session_ttl_hours) $('#sessionTtl').textContent = `${data.session_ttl_hours} h`;
+
+    box.innerHTML = data.users.map((u) => `
+      <button type="button" class="demo-user role-${esc(u.role)}" data-email="${esc(u.email)}"
+              data-password="${esc(u.password)}" title="Entrar como ${esc(u.roleLabel)}">
+        <span class="demo-user-top">
+          <span class="demo-avatar role-${esc(u.role)}">${esc(u.initials)}</span>
+          <span class="demo-user-id">
+            <strong>${esc(u.name)}</strong>
+            <span>${esc(u.title)} · ${esc(u.sector)}</span>
+          </span>
+          <span class="role-badge role-${esc(u.role)}">${esc(u.roleLabel)}</span>
+        </span>
+        <span class="demo-user-meta">
+          <span><code>${esc(u.email)}</code></span>
+          <span>senha <code>${esc(u.password)}</code></span>
+        </span>
+        <span class="demo-user-desc">${esc(u.roleDescription || '')}</span>
+        <span class="demo-user-action">Entrar como ${esc(u.roleLabel)} →</span>
+      </button>`).join('');
+
+    box.querySelectorAll('[data-email]').forEach((btn) => {
+      btn.addEventListener('click', () => loginWith(btn.dataset.email, btn.dataset.password));
+    });
+  } catch {
+    box.innerHTML = '<p class="empty">Não foi possível carregar os perfis agora. Use o formulário acima.</p>';
+  }
+}
+
+function showDashboardView() {
+  $$('.tab').forEach((b) => b.classList.toggle('active', b.dataset.view === 'dashboard'));
+  $$('.view').forEach((v) => v.classList.toggle('active', v.id === 'view-dashboard'));
+}
+
+function startApp() {
+  applyUserUI();
+  showDashboardView();
+  resetChat();
+  loadStatus();
+  loadDashboard();
+  loadChats();
+  if (!statusTimer) statusTimer = setInterval(loadStatus, 30000);
+}
+
+async function doLogout() {
+  try {
+    await api('/auth/logout', { method: 'POST', skipAuthRedirect: true });
+  } catch {
+    // a sessão pode já ter expirado; o logout local continua
+  }
+  clearSession();
+  clearAppData();
+  showLogin('Você saiu da plataforma.', 'notice');
+}
+
+$('#loginForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  loginWith($('#loginEmail').value.trim(), $('#loginPassword').value);
+});
+
+$('#btnLogout').addEventListener('click', doLogout);
+
+async function boot() {
+  loadDemoUsers();
+  const saved = readSession();
+  if (!saved || !saved.token) {
+    showLogin();
+    return;
+  }
+
+  currentSessionToken = saved.token;
+  try {
+    const { user } = await api('/auth/me', { skipAuthRedirect: true });
+    writeSession(saved.token, user);
+    showApp();
+    startApp();
+  } catch {
+    clearSession();
+    showLogin('Sessão expirada. Entre novamente.');
+  }
+}
 
 /* ================= tabs ================= */
 $$('.tab').forEach((btn) => {
@@ -160,9 +406,9 @@ async function loadMateriais() {
       <td>${fmtNum(m.saldo)} ${esc(m.unidade)}</td>
       <td>${m.custo_unitario > 0 ? fmtBRL(m.custo_unitario) : '—'}</td>
       <td>${riskTag(m.risco)}</td>
-      <td style="white-space:nowrap">
+      <td style="white-space:nowrap">${can('materiais:write') ? `
         <button class="btn sm ghost" data-edit="${m._id}">Editar</button>
-        <button class="btn sm danger" data-del="${m._id}">Excluir</button>
+        <button class="btn sm danger" data-del="${m._id}">Excluir</button>` : '<span class="sub">—</span>'}
       </td>
     </tr>`).join('') || '<tr><td colspan="7" class="empty">Nenhum material encontrado.</td></tr>';
 
@@ -258,12 +504,13 @@ $('#formRes').addEventListener('submit', async (e) => {
 let history = [];
 let currentChatId = null;
 
-const WELCOME_HTML = 'Olá! Sou o agente <strong>ReSource</strong>. Pergunte sobre estoque, destinação de resíduos, políticas internas ou riscos — respondo com base nos dados reais da empresa.';
+const welcomeHtml = () => `Olá${currentUser?.firstName ? `, <strong>${esc(currentUser.firstName)}</strong>` : ''}! Sou o agente <strong>ReSource</strong>. Pergunte sobre estoque, destinação de resíduos, políticas internas ou riscos — respondo com base nos dados reais da empresa.`;
 
 function addMsg(role, html, meta) {
   const el = document.createElement('div');
   el.className = 'msg ' + role;
-  el.innerHTML = `<div class="avatar">${role === 'user' ? 'EU' : 'IA'}</div><div class="msg-body">${html}${meta ? metaHtml(meta) : ''}</div>`;
+  const avatar = role === 'user' ? esc(initials(currentUser?.name)) : 'IA';
+  el.innerHTML = `<div class="avatar">${avatar}</div><div class="msg-body">${html}${meta ? metaHtml(meta) : ''}</div>`;
   $('#chatMsgs').appendChild(el);
   $('#chatMsgs').scrollTop = $('#chatMsgs').scrollHeight;
   return el;
@@ -279,7 +526,7 @@ function renderConversation(msgs) {
   const box = $('#chatMsgs');
   box.innerHTML = '';
   if (!msgs.length) {
-    addMsg('bot', WELCOME_HTML);
+    addMsg('bot', welcomeHtml());
     return;
   }
   for (const m of msgs) addMsg(m.role === 'user' ? 'user' : 'bot', esc(m.content), m.meta);
@@ -294,7 +541,11 @@ async function loadChats() {
         <div class="chat-item ${c._id === currentChatId ? 'active' : ''}" data-chat="${c._id}" title="${esc(c.titulo)}">
           <div class="chat-item-main">
             <div class="chat-item-title">${esc(c.titulo)}</div>
-            <div class="chat-item-meta">${new Date(c.updated_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} · ${c.mensagens} msg${c.mensagens === 1 ? '' : 's'}</div>
+            <div class="chat-item-meta">${new Date(c.updated_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} · ${c.mensagens} msg${c.mensagens === 1 ? '' : 's'}${
+              currentUser?.role === 'admin' && c.usuario_email && c.usuario_email !== currentUser.email
+                ? ` · ${esc(c.usuario_nome || c.usuario_email)}`
+                : ''
+            }</div>
           </div>
           <button class="chat-item-del" data-del-chat="${c._id}" title="Excluir conversa">×</button>
         </div>`).join('')
@@ -381,17 +632,27 @@ $('#chatInput').addEventListener('keydown', (e) => {
 $$('#suggestions .chip').forEach((c) => c.addEventListener('click', () => sendChat(c.textContent)));
 
 /* ================= auditoria ================= */
+function auditDate(value) {
+  if (!value) return '—';
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('pt-BR');
+}
+
 async function loadAuditoria() {
   const rows = await api('/auditorias');
   $('#tblAudit tbody').innerHTML = rows.map((a) => `
-    <tr><td>${new Date(a.data).toLocaleString('pt-BR')}</td>
+    <tr><td>${auditDate(a.data || a.created_at)}</td>
     <td><strong>${esc(a.evento)}</strong></td>
     <td>${esc(a.detalhe)}</td>
-    <td>${esc(a.usuario)}</td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem registros.</td></tr>';
+    <td title="${esc(a.usuario_email || '')}">
+      ${esc(a.usuario || 'sistema')}
+      ${a.usuario_role ? `<div class="sub" style="font-size:11px">${esc(a.usuario_role)}${a.usuario_setor ? ' · ' + esc(a.usuario_setor) : ''}</div>` : ''}
+    </td></tr>`).join('') || '<tr><td colspan="4" class="empty">Sem registros.</td></tr>';
 }
 $('#btnRefreshAudit').addEventListener('click', loadAuditoria);
 
 $('#btnReset').addEventListener('click', async () => {
+  if (!can('demo:reset')) return;
   if (!confirm('Restaurar todos os dados para o estado inicial da demonstração?')) return;
   try {
     if (adminResetProtegido && !adminToken()) {
@@ -399,7 +660,7 @@ $('#btnReset').addEventListener('click', async () => {
       if (!t) return;
       sessionStorage.setItem(ADMIN_TOKEN_KEY, t);
     }
-    await api('/reset', { method: 'POST' });
+    await api('/reset', { method: 'POST', adminToken: adminToken() });
     resetChat();
     loadStatus(); loadAuditoria(); loadChats();
   } catch (e) {
@@ -409,7 +670,4 @@ $('#btnReset').addEventListener('click', async () => {
 });
 
 /* ================= init ================= */
-loadStatus();
-loadDashboard();
-loadChats();
-setInterval(loadStatus, 30000);
+boot();

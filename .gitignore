@@ -17,4 +17,3 @@ data/db.json
 npm-debug.log*
 .DS_Store
 .vercel
-.env*

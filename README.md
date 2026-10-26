@@ -18,7 +18,7 @@ planilhas. Isso gera três problemas concretos:
 
 1. **Ninguém consegue perguntar "onde está o que sobra?"** — os dados existem, mas só em forma de
    tabelas e registros soltos.
-2. **O relatório ambiental é manual** — cada fechamento exige someone filtrando registros à mão,
+2. **O relatório ambiental é manual** — cada fechamento exige alguém filtrando registros à mão,
    o que atrasa a decisão e aumenta o erro.
 3. **Não há rastreabilidade** — não existe histórico de qual consulta do agente foi feita, com qual
    fonte e por quem.
@@ -38,6 +38,27 @@ O ReSource resolve os três sem reescrever o banco: ele **lê** o legado, **inde
 
 Além do chat, existem páginas de **apresentação** do projeto e de **API** (documentação viva dos
 endpoints, gerada a partir do próprio backend).
+
+## Acesso de demonstração
+
+A plataforma exige login. Como este é um MVP de demonstração, os perfis e as senhas são **fictícios**
+e aparecem na própria tela de entrada. Cada perfil reproduz as permissões de um setor:
+
+| Perfil | E-mail | Senha | O que pode fazer |
+|---|---|---|---|
+| **Gestor Ambiental** | `gestor@econova.com` | `demo123` | Visão completa: estoque, resíduos, relatórios, auditoria e reindexação |
+| **Operador de Estoque** | `estoque@econova.com` | `demo123` | Cadastro, edição e exclusão de materiais |
+| **Analista de Resíduos** | `residuos@econova.com` | `demo123` | Registro de resíduos e consultas |
+| **Auditor** | `auditor@econova.com` | `demo123` | Somente leitura: dashboard, relatórios e auditoria |
+| **Administrador** | `admin@econova.com` | `demo123` | Acesso total e restauração da demo |
+
+> ⚠️ **Isto não é autenticação de produção.** As credenciais são públicas de propósito e existem para
+> demonstrar a experiência por setor. Para produção, substitua `backend/auth.js` por um provedor de
+> identidade (Auth0, Clerk, Cognito etc.) mantendo a interface `req.user` + `permissions`.
+
+A sessão é um token assinado com HMAC (sem estado, compatível com serverless), válido por 12 horas.
+Cada conversa do Agente IA fica vinculada ao perfil que a criou; ninguém vê o histórico de outro
+setor. A auditoria passa a registrar o nome, o e-mail, o setor e o perfil de quem executou cada ação.
 
 ## Como funciona
 
@@ -106,8 +127,15 @@ de LLM para entregar dados.
 
 ## API
 
+> Todas as rotas abaixo exigem `Authorization: Bearer <token>` obtido em `POST /api/auth/login`,
+> exceto `GET /api/health`, `POST /api/auth/login` e `GET /api/auth/demo-users`. Rotas de escrita
+> também validam a permissão do perfil.
+
 | Método & rota | Descrição |
 |---|---|
+| `POST /api/auth/login` | Autentica um perfil demo e devolve o token de sessão |
+| `GET /api/auth/demo-users` | Perfis fictícios disponíveis (inclui a senha de demonstração) |
+| `GET /api/auth/me` \| `POST /api/auth/logout` | Perfil da sessão atual / encerramento |
 | `GET /api/health` | Status do banco (real ou simulado), do índice vetorial e do Ollama |
 | `GET\|POST\|PUT\|DELETE /api/materiais` | CRUD de insumos (RF04) |
 | `GET\|POST /api/residuos` | Resíduos e destinos |
@@ -116,19 +144,31 @@ de LLM para entregar dados.
 | `GET\|POST /api/chats`, `GET\|DELETE /api/chats/:id` | Histórico de conversas do Agente IA |
 | `POST /api/estoque/analise` | Relatório executivo do agente (RF01) |
 | `POST /api/rag/reindex`, `GET /api/rag/search?q=` | Vetorização e busca (RF02) |
-| `GET /api/auditorias` | Histórico do agente (RF06) |
-| `POST /api/reset` | Restaura os dados de demonstração |
+| `GET /api/auditorias` | Histórico do agente com o perfil que executou (RF06) |
+| `POST /api/reset` | Restaura os dados de demonstração (perfil admin + token em produção) |
 
 ## Segurança e operação
 
-- **`POST /api/reset` exige token**: o header `x-admin-token` é comparado em tempo constante
-  (`timingSafeEqual`). Sem o token correto a resposta é **403** — ninguém consegue resetar a demo
-  pela internet.
-- **Rate limiting por IP**: 20 requisições de chat e 10 de análise por minuto.
-- **Segredos fora do repositório**: `.env` é ignorado pelo Git e pelo deploy; no bundle enviado à
-  Vercel há apenas `.env.example` com placeholders.
-- **Sem credenciais no frontend**: o token de admin fica em `sessionStorage` no navegador e é
-  enviado apenas no header da requisição de reset.
+- **Login demo com sessão assinada**: `POST /api/auth/login` devolve um token HMAC com validade de
+  12 h. A assinatura usa `SESSION_SECRET` (ou `ADMIN_TOKEN` como fallback) e é verificada em tempo
+  constante. O token fica em `localStorage` no navegador.
+- **Defina `SESSION_SECRET` no deploy**: sem ele a API usa o segredo de demonstração que está no
+  código-fonte. Em produção, configure um valor aleatório longo nas variáveis de ambiente.
+- **Permissões por setor**: as rotas de escrita checam permissões declarativas (`materiais:write`,
+  `residuos:write`, `rag:reindex`, `demo:reset`). O frontend esconde ações que o perfil não pode
+  executar, e o backend rejeita com **403** mesmo que alguém chame a API direto.
+- **Conversas isoladas**: cada conversa do Agente IA pertence ao e-mail que a criou. Listar, abrir e
+  excluir só funciona para o dono (o perfil admin pode auditar todas).
+- **Auditoria com identidade**: cada evento grava `usuario`, `usuario_email`, `usuario_setor`,
+  `usuario_role` e `data` — não existe mais o genérico `usuario-web`.
+- **`POST /api/reset` exige perfil admin e, em produção, token**: o perfil sozinho não basta quando
+  `ADMIN_TOKEN` está definido; o header `x-admin-token` é comparado em tempo constante
+  (`timingSafeEqual`). Sem ele a resposta é **403**.
+- **Rate limiting por IP**: 20 requisições de chat, 10 de análise e 20 de login por minuto.
+- **Segredos fora do repositório**: `.env` é ignorado pelo Git e pelo deploy; o repositório traz
+  apenas `.env.example` com placeholders.
+- **Limite desta demo**: as credenciais são públicas e os dados são fictícios. Não use este modelo
+  de autenticação com dados reais de clientes.
 
 ## Estrutura do código
 
@@ -137,6 +177,7 @@ A3-MVP/
 ├── api/index.js        # entrypoint da serverless function do Vercel
 ├── backend/
 │   ├── app.js           # API Express (RF01–RF06) — exporta o app
+│   ├── auth.js          # login demo, sessão HMAC e permissões por setor
 │   ├── server.js        # servidor Node (usado no desenvolvimento)
 │   ├── db.js            # camada de dados: MongoDB (Atlas) ou simulado em arquivo
 │   ├── vectorstore.js   # banco vetorial TF-IDF + cosseno (mimic Qdrant)

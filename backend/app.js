@@ -20,11 +20,14 @@ const crypto = require('crypto');
 const db = require('./db');
 const vectorstore = require('./vectorstore');
 const ollama = require('./ollama');
+const auth = require('./auth');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_TOKEN = (process.env.ADMIN_TOKEN || '').trim();
 
+// Necessário para rate limit por IP atrás do proxy da Vercel.
+app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
@@ -74,9 +77,27 @@ const rateLimit = (maxPorMinuto) => {
 };
 
 // ---------- auditoria (RF06) ----------
-async function audit(evento, detalhe, usuario = 'sistema') {
+/**
+ * Registra um evento com a identidade de quem o praticou.
+ * `usuario` pode ser o objeto req.user (perfil autenticado) ou uma string
+ * para eventos de sistema.
+ */
+async function audit(evento, detalhe, usuario = null) {
   try {
-    await db.collection('auditorias').insertOne({ evento, detalhe, usuario });
+    const doc = {
+      evento,
+      detalhe,
+      data: new Date().toISOString(),
+      usuario: typeof usuario === 'string'
+        ? usuario
+        : (usuario?.name || usuario?.email || 'sistema'),
+    };
+    if (usuario && typeof usuario === 'object') {
+      doc.usuario_email = usuario.email;
+      doc.usuario_setor = usuario.sector;
+      doc.usuario_role = usuario.role;
+    }
+    await db.collection('auditorias').insertOne(doc);
   } catch (e) {
     console.warn('[audit]', e.message);
   }
@@ -102,22 +123,61 @@ app.get('/api/health', wrap(async (req, res) => {
       cloud: ollama.isCloud(),
       models,
     },
+    auth: {
+      demo: true,
+      session_ttl_hours: auth.SESSION_TTL_HOURS,
+      profiles: Object.keys(auth.ROLE_DEFS),
+    },
     admin: { reset: !!ADMIN_TOKEN },
   });
 }));
 
-app.post('/api/ollama/reconnect', (req, res) => {
+// ---------- autenticação (demo) ----------
+// Perfis e senhas fictícios, exibidos na tela de login de propósito.
+app.get('/api/auth/demo-users', (req, res) => {
+  res.json({
+    demo: true,
+    password: auth.DEMO_PASSWORD,
+    session_ttl_hours: auth.SESSION_TTL_HOURS,
+    roles: Object.entries(auth.ROLE_DEFS).map(([role, def]) => ({ role, ...def })),
+    users: auth.demoUsers(),
+  });
+});
+
+app.post('/api/auth/login', rateLimit(Number(process.env.RATE_LIMIT_LOGIN || 20)), wrap(async (req, res) => {
+  const { email, password } = req.body || {};
+  const session = auth.login(email, password);
+  if (!session) {
+    await audit('Tentativa de login malsucedida', `e-mail: ${String(email || '(vazio)').slice(0, 120)}`);
+    return res.status(401).json({ error: 'e-mail ou senha inválidos' });
+  }
+  await audit('Login', `${session.user.name} entrou como ${session.user.roleLabel}`, session.user);
+  res.json(session);
+}));
+
+app.get('/api/auth/me', auth.requireAuth, (req, res) => res.json({ user: req.user }));
+
+app.post('/api/auth/logout', auth.requireAuth, wrap(async (req, res) => {
+  await audit('Logout', `${req.user.name} saiu da plataforma`, req.user);
+  res.json({ ok: true });
+}));
+
+// Atalhos para deixar as rotas protegidas legíveis.
+const loginRequired = auth.requireAuth;
+const allow = auth.requirePermission;
+
+app.post('/api/ollama/reconnect', loginRequired, allow('admin:ops'), (req, res) => {
   ollama.invalidateCache();
   res.json({ ok: true });
 });
 
 // ---------- dados da empresa ----------
-app.get('/api/empresa', wrap(async (req, res) => res.json(await db.config('empresa'))));
-app.get('/api/indicadores', wrap(async (req, res) => res.json(await db.config('indicadores'))));
-app.get('/api/politicas', wrap(async (req, res) => res.json(await db.collection('politicas').all())));
+app.get('/api/empresa', loginRequired, wrap(async (req, res) => res.json(await db.config('empresa'))));
+app.get('/api/indicadores', loginRequired, wrap(async (req, res) => res.json(await db.config('indicadores'))));
+app.get('/api/politicas', loginRequired, wrap(async (req, res) => res.json(await db.collection('politicas').all())));
 
 // ---------- materiais (RF04) ----------
-app.get('/api/materiais', wrap(async (req, res) => {
+app.get('/api/materiais', loginRequired, wrap(async (req, res) => {
   const { categoria, q } = req.query;
   let rows = await db.collection('materiais').all();
   if (categoria) rows = rows.filter((r) => r.categoria.toLowerCase() === categoria.toLowerCase());
@@ -125,7 +185,7 @@ app.get('/api/materiais', wrap(async (req, res) => {
   res.json(rows);
 }));
 
-app.post('/api/materiais', wrap(async (req, res) => {
+app.post('/api/materiais', loginRequired, allow('materiais:write'), wrap(async (req, res) => {
   const { nome, categoria, unidade, saldo, custo_unitario, fornecedor, localizacao, risco, descricao } = req.body || {};
   if (!nome || !categoria) return res.status(400).json({ error: 'nome e categoria são obrigatórios' });
   const total = await db.collection('materiais').count();
@@ -136,33 +196,33 @@ app.post('/api/materiais', wrap(async (req, res) => {
     localizacao: localizacao || '', risco: risco || 'Baixo', descricao: descricao || '',
   });
   await vectorstore.rebuild();
-  await audit('Cadastro de material', `Novo material ${doc.codigo} - ${nome}`);
+  await audit('Cadastro de material', `Novo material ${doc.codigo} - ${nome}`, req.user);
   res.status(201).json(doc);
 }));
 
-app.put('/api/materiais/:id', wrap(async (req, res) => {
+app.put('/api/materiais/:id', loginRequired, allow('materiais:write'), wrap(async (req, res) => {
   const allowed = ['nome', 'categoria', 'unidade', 'saldo', 'custo_unitario', 'fornecedor', 'localizacao', 'risco', 'descricao'];
   const $set = {};
   for (const k of allowed) if (req.body[k] !== undefined) $set[k] = req.body[k];
   const doc = await db.collection('materiais').updateOne({ _id: req.params.id }, { $set });
   if (!doc) return res.status(404).json({ error: 'material não encontrado' });
   await vectorstore.rebuild();
-  await audit('Atualização de material', `${doc.codigo} atualizado`);
+  await audit('Atualização de material', `${doc.codigo} atualizado`, req.user);
   res.json(doc);
 }));
 
-app.delete('/api/materiais/:id', wrap(async (req, res) => {
+app.delete('/api/materiais/:id', loginRequired, allow('materiais:write'), wrap(async (req, res) => {
   const ok = await db.collection('materiais').deleteOne({ _id: req.params.id });
   if (!ok) return res.status(404).json({ error: 'material não encontrado' });
   await vectorstore.rebuild();
-  await audit('Exclusão de material', `id ${req.params.id}`);
+  await audit('Exclusão de material', `id ${req.params.id}`, req.user);
   res.json({ ok: true });
 }));
 
 // ---------- resíduos ----------
-app.get('/api/residuos', wrap(async (req, res) => res.json(await db.collection('residuos').all())));
+app.get('/api/residuos', loginRequired, wrap(async (req, res) => res.json(await db.collection('residuos').all())));
 
-app.post('/api/residuos', wrap(async (req, res) => {
+app.post('/api/residuos', loginRequired, allow('residuos:write'), wrap(async (req, res) => {
   const { nome, categoria, quantidade_kg, classe, destino_atual, fornecedor_destino } = req.body || {};
   if (!nome) return res.status(400).json({ error: 'nome é obrigatório' });
   const doc = await db.collection('residuos').insertOne({
@@ -171,12 +231,12 @@ app.post('/api/residuos', wrap(async (req, res) => {
     gerado_em: new Date().toISOString().slice(0, 10), fornecedor_destino: fornecedor_destino || '',
   });
   await vectorstore.rebuild();
-  await audit('Registro de resíduo', `${nome} (${doc.quantidade_kg} kg)`);
+  await audit('Registro de resíduo', `${nome} (${doc.quantidade_kg} kg)`, req.user);
   res.status(201).json(doc);
 }));
 
 // ---------- movimentações ----------
-app.get('/api/movimentacoes', wrap(async (req, res) => {
+app.get('/api/movimentacoes', loginRequired, wrap(async (req, res) => {
   const materiais = await db.collection('materiais').all();
   const porId = new Map(materiais.map((m) => [m._id, m]));
   const rows = (await db.collection('movimentacoes').all()).map((mv) => {
@@ -187,7 +247,7 @@ app.get('/api/movimentacoes', wrap(async (req, res) => {
 }));
 
 // ---------- dashboard (RF05) ----------
-app.get('/api/dashboard', wrap(async (req, res) => {
+app.get('/api/dashboard', loginRequired, wrap(async (req, res) => {
   const materiais = await db.collection('materiais').all();
   const residuos = await db.collection('residuos').all();
   const ind = await db.config('indicadores');
@@ -216,19 +276,19 @@ app.get('/api/dashboard', wrap(async (req, res) => {
 }));
 
 // ---------- auditoria (RF06) ----------
-app.get('/api/auditorias', wrap(async (req, res) => {
+app.get('/api/auditorias', loginRequired, wrap(async (req, res) => {
   const rows = (await db.collection('auditorias').all()).slice().reverse().slice(0, 50);
   res.json(rows);
 }));
 
 // ---------- RF02: vetorização ----------
-app.post('/api/rag/reindex', wrap(async (req, res) => {
+app.post('/api/rag/reindex', loginRequired, allow('rag:reindex'), wrap(async (req, res) => {
   const info = await vectorstore.rebuild();
-  await audit('Reindexação vetorial', `${info.documents} documentos, ${info.vocabulary} termos`);
+  await audit('Reindexação vetorial', `${info.documents} documentos, ${info.vocabulary} termos`, req.user);
   res.json({ ok: true, ...info });
 }));
 
-app.get('/api/rag/search', wrap(async (req, res) => {
+app.get('/api/rag/search', loginRequired, wrap(async (req, res) => {
   const { q, k } = req.query;
   if (!q) return res.status(400).json({ error: 'q é obrigatório' });
   const hits = await vectorstore.search(q, Math.min(Number(k) || 4, 10));
@@ -242,33 +302,58 @@ function chatTitle(message) {
   return t.length > 48 ? t.slice(0, 48) + '…' : t;
 }
 
-app.get('/api/chats', wrap(async (req, res) => {
-  const rows = (await db.collection('conversas').all()).map((c) => ({
-    _id: c._id,
-    titulo: c.titulo || 'Nova conversa',
-    mensagens: (c.mensagens || []).length,
-    created_at: c.created_at,
-    updated_at: c.updated_at || c.created_at,
-  }));
+/** Dono da conversa: cada perfil só vê as próprias; admin pode auditar todas. */
+function canAccessChat(chat, user) {
+  if (!chat) return false;
+  if (user?.role === 'admin') return true;
+  return !!chat.usuario_email && chat.usuario_email === user?.email;
+}
+
+app.get('/api/chats', loginRequired, wrap(async (req, res) => {
+  const isAdmin = req.user.role === 'admin';
+  const rows = (await db.collection('conversas').all())
+    .filter((c) => isAdmin || c.usuario_email === req.user.email)
+    .map((c) => ({
+      _id: c._id,
+      titulo: c.titulo || 'Nova conversa',
+      mensagens: (c.mensagens || []).length,
+      created_at: c.created_at,
+      updated_at: c.updated_at || c.created_at,
+      usuario_nome: c.usuario_nome || '',
+      usuario_email: c.usuario_email || '',
+    }));
   res.json(rows.sort((a, b) => String(b.updated_at).localeCompare(String(a.updated_at))));
 }));
 
-app.post('/api/chats', wrap(async (req, res) => {
+app.post('/api/chats', loginRequired, wrap(async (req, res) => {
   const { titulo } = req.body || {};
-  const doc = await db.collection('conversas').insertOne({ titulo: String(titulo || 'Nova conversa').slice(0, 60), mensagens: [] });
+  const doc = await db.collection('conversas').insertOne({
+    titulo: String(titulo || 'Nova conversa').slice(0, 60),
+    mensagens: [],
+    usuario_email: req.user.email,
+    usuario_nome: req.user.name,
+    usuario_role: req.user.role,
+  });
   res.status(201).json(doc);
 }));
 
-app.get('/api/chats/:id', wrap(async (req, res) => {
+app.get('/api/chats/:id', loginRequired, wrap(async (req, res) => {
   const doc = await db.collection('conversas').findOne({ _id: req.params.id });
   if (!doc) return res.status(404).json({ error: 'conversa não encontrada' });
+  if (!canAccessChat(doc, req.user)) {
+    return res.status(403).json({ error: 'esta conversa pertence a outro perfil' });
+  }
   res.json(doc);
 }));
 
-app.delete('/api/chats/:id', wrap(async (req, res) => {
-  const ok = await db.collection('conversas').deleteOne({ _id: req.params.id });
-  if (!ok) return res.status(404).json({ error: 'conversa não encontrada' });
-  await audit('Exclusão de conversa', `id ${req.params.id}`, 'usuario-web');
+app.delete('/api/chats/:id', loginRequired, wrap(async (req, res) => {
+  const doc = await db.collection('conversas').findOne({ _id: req.params.id });
+  if (!doc) return res.status(404).json({ error: 'conversa não encontrada' });
+  if (!canAccessChat(doc, req.user)) {
+    return res.status(403).json({ error: 'esta conversa pertence a outro perfil' });
+  }
+  await db.collection('conversas').deleteOne({ _id: req.params.id });
+  await audit('Exclusão de conversa', `"${doc.titulo || doc._id}"`, req.user);
   res.json({ ok: true });
 }));
 
@@ -295,7 +380,7 @@ async function buildContext(question) {
   return { context: lines.join('\n'), hits };
 }
 
-app.post('/api/chat', rateLimit(Number(process.env.RATE_LIMIT_CHAT || 20)), wrap(async (req, res) => {
+app.post('/api/chat', loginRequired, allow('chat:use'), rateLimit(Number(process.env.RATE_LIMIT_CHAT || 20)), wrap(async (req, res) => {
   const { message, history = [], chatId = null } = req.body || {};
   if (!message || typeof message !== 'string') return res.status(400).json({ error: 'message é obrigatório' });
 
@@ -315,7 +400,11 @@ Regras para usar o contexto:
 
   const messages = [
     { role: 'system', content: system },
-    ...history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
+    // só aceita user/assistant do cliente: impede injetar mensagens "system" pelo histórico
+    ...(Array.isArray(history) ? history : [])
+      .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string')
+      .slice(-8)
+      .map((m) => ({ role: m.role, content: m.content.slice(0, 4000) })),
     { role: 'user', content: message },
   ];
 
@@ -323,17 +412,28 @@ Regras para usar o contexto:
   const result = await ollama.chat(messages, { temperature: 0.4 });
   const latencyMs = Date.now() - t0;
 
-  await audit('Consulta RAG', `"${message.slice(0, 80)}" (${hits.length} docs, ${result.source}, ${latencyMs}ms)`, 'usuario-web');
+  await audit('Consulta RAG', `"${message.slice(0, 80)}" (${hits.length} docs, ${result.source}, ${latencyMs}ms)`, req.user);
 
   const sources = hits.map((h) => ({ collection: h.collection, score: Number(h.score.toFixed(3)), label: h.payload?.nome || h.payload?.titulo || h.payload?.motivo || h.id }));
   const meta = { source: result.source, model: result.model, latency_ms: latencyMs, sources };
 
-  // persiste a conversa no histórico
+  // persiste a conversa no histórico, sempre vinculada ao perfil autenticado
   let chat = chatId ? await db.collection('conversas').findOne({ _id: chatId }) : null;
+  if (chatId && !chat) return res.status(404).json({ error: 'conversa não encontrada' });
+  if (chat && !canAccessChat(chat, req.user)) {
+    return res.status(403).json({ error: 'esta conversa pertence a outro perfil' });
+  }
+
   const userMsg = { role: 'user', content: message };
   const botMsg = { role: 'assistant', content: result.text, meta };
   if (!chat) {
-    chat = await db.collection('conversas').insertOne({ titulo: chatTitle(message), mensagens: [userMsg, botMsg] });
+    chat = await db.collection('conversas').insertOne({
+      titulo: chatTitle(message),
+      mensagens: [userMsg, botMsg],
+      usuario_email: req.user.email,
+      usuario_nome: req.user.name,
+      usuario_role: req.user.role,
+    });
   } else {
     const precisaTitulo = !chat.titulo || chat.titulo === 'Nova conversa';
     await db.collection('conversas').updateOne({ _id: chat._id }, {
@@ -355,7 +455,7 @@ Regras para usar o contexto:
 }));
 
 // ---------- RF01: análise de estoque com agente IA ----------
-app.post('/api/estoque/analise', rateLimit(Number(process.env.RATE_LIMIT_ANALISE || 10)), wrap(async (req, res) => {
+app.post('/api/estoque/analise', loginRequired, allow('analise:run'), rateLimit(Number(process.env.RATE_LIMIT_ANALISE || 10)), wrap(async (req, res) => {
   const materiais = await db.collection('materiais').all();
   const residuos = await db.collection('residuos').all();
   const ind = await db.config('indicadores');
@@ -386,7 +486,7 @@ Seja específico, use os números fornecidos, não invente dados. Máximo 300 pa
   const result = await ollama.chat(messages, { temperature: 0.3, timeoutMs: 60000 });
   const latencyMs = Date.now() - t0;
 
-  await audit('Análise de estoque', `Agente analisou ${materiais.length} materiais (${result.source}, ${latencyMs}ms)`, 'usuario-web');
+  await audit('Análise de estoque', `Agente analisou ${materiais.length} materiais (${result.source}, ${latencyMs}ms)`, req.user);
 
   res.json({
     report: result.text,
@@ -411,15 +511,23 @@ function tokenValido(informado) {
   return crypto.timingSafeEqual(a, b);
 }
 
-app.post('/api/reset', wrap(async (req, res) => {
+app.post('/api/reset', loginRequired, allow('demo:reset'), wrap(async (req, res) => {
   const informado = req.get('x-admin-token') || (req.body && req.body.token) || '';
-  if (!tokenValido(informado)) {
+  // Em produção (ADMIN_TOKEN definido) o token continua obrigatório mesmo
+  // para o perfil admin; sem ele a demo não pode ser apagada por visitantes.
+  if (ADMIN_TOKEN && !tokenValido(informado)) {
     return res.status(403).json({ error: 'token de administrador inválido - informe o header x-admin-token' });
   }
   await db.reset();
   const info = await vectorstore.rebuild();
+  await audit('Restauração de dados', 'Dados de demonstração restaurados', req.user);
   res.json({ ok: true, vector: info });
 }));
+
+// ---------- fallback JSON para rotas de API inexistentes ----------
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: `rota de API não encontrada: ${req.method} ${req.originalUrl}` });
+});
 
 // ---------- tratamento de erro (não deixa a request pendurada no Vercel) ----------
 app.use((err, req, res, next) => {

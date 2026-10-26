@@ -25,12 +25,17 @@ const ADMIN_TOKEN = 'token-de-teste';
 
 let base = '';
 let reqs = 0;
+let authToken = '';
 
 async function call(method, path, body, headers = {}) {
   reqs++;
   const res = await fetch(`${base}${path}`, {
     method,
-    headers: { 'Content-Type': 'application/json', ...headers },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      ...headers,
+    },
     body: body ? JSON.stringify(body) : undefined,
   });
   const json = await res.json().catch(() => ({}));
@@ -53,8 +58,56 @@ async function main() {
   base = `http://localhost:${server.address().port}`;
   console.log('[smoke] API em', base);
 
+  // ---- autenticação demo ----
+  let r = await call('GET', '/api/materiais');
+  assert.strictEqual(r.status, 401, 'API deve exigir sessão');
+  r = await call('GET', '/api/auth/demo-users');
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.body.users.length, 5, 'deveria ter 5 perfis demo');
+  assert.ok(r.body.users.every((u) => u.email && u.password), 'perfis sem credenciais de demo');
+  r = await call('POST', '/api/auth/login', { email: 'admin@econova.com', password: 'errada' });
+  assert.strictEqual(r.status, 401, 'senha errada deveria falhar');
+  r = await call('POST', '/api/auth/login', { email: 'admin@econova.com', password: 'demo123' });
+  assert.strictEqual(r.status, 200);
+  assert.ok(r.body.token, 'login sem token');
+  assert.strictEqual(r.body.user.role, 'admin');
+  authToken = r.body.token;
+  r = await call('GET', '/api/auth/me');
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.body.user.email, 'admin@econova.com');
+  console.log('  ok  login demo + sessão assinada');
+
+  // ---- permissões por setor ----
+  r = await call('POST', '/api/auth/login', { email: 'auditor@econova.com', password: 'demo123' });
+  const auditorToken = r.body.token;
+  r = await call('POST', '/api/materiais', { nome: 'Proibido', categoria: 'Plástico' }, { Authorization: `Bearer ${auditorToken}` });
+  assert.strictEqual(r.status, 403, 'auditor não deveria escrever material');
+  r = await call('POST', '/api/materiais', { nome: 'Proibido', categoria: 'Plástico' }, { Authorization: 'Bearer token-invalido' });
+  assert.strictEqual(r.status, 401, 'token inválido deveria dar 401');
+  console.log('  ok  permissões por perfil (auditor somente leitura)');
+
+  // ---- isolamento de conversas ----
+  r = await call('POST', '/api/auth/login', { email: 'gestor@econova.com', password: 'demo123' });
+  const gestorToken = r.body.token;
+  r = await call('POST', '/api/chats', { titulo: 'Teste de isolamento' }, { Authorization: `Bearer ${gestorToken}` });
+  assert.strictEqual(r.status, 201);
+  const chatId = r.body._id;
+  assert.strictEqual(r.body.usuario_email, 'gestor@econova.com');
+  r = await call('GET', `/api/chats/${chatId}`, null, { Authorization: `Bearer ${auditorToken}` });
+  assert.strictEqual(r.status, 403, 'outro perfil não deveria abrir a conversa');
+  r = await call('DELETE', `/api/chats/${chatId}`, null, { Authorization: `Bearer ${auditorToken}` });
+  assert.strictEqual(r.status, 403, 'outro perfil não deveria excluir a conversa');
+  r = await call('GET', '/api/chats');
+  assert.ok(r.body.some((c) => c._id === chatId), 'admin deveria enxergar todas as conversas');
+  assert.strictEqual(r.body.find((c) => c._id === chatId).usuario_email, 'gestor@econova.com');
+  r = await call('DELETE', `/api/chats/${chatId}`, null, { Authorization: `Bearer ${gestorToken}` });
+  assert.strictEqual(r.status, 200);
+  r = await call('POST', '/api/auth/login', { email: 'admin@econova.com', password: 'demo123' });
+  authToken = r.body.token;
+  console.log('  ok  conversas isoladas por perfil (admin audita todas)');
+
   // ---- health ----
-  let r = await call('GET', '/api/health');
+  r = await call('GET', '/api/health');
   assert.strictEqual(r.status, 200);
   assert.strictEqual(r.body.mongo.simulated, false, 'deveria usar MongoDB real');
   assert.strictEqual(r.body.admin.reset, true);
