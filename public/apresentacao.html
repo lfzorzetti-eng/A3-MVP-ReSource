@@ -290,9 +290,9 @@ td .path-ref { font-size: 12px; }
 <body>
 
 <header class="deck-top">
-  <span class="deck-name">ReSource · A3 · 2º Checkpoint · 16/10/2026</span>
+  <span class="deck-name">ReSource · A3 · 2º Checkpoint · atualizado em 26/10/2026</span>
   <span class="part-badge" id="partBadge">Abertura</span>
-  <span class="counter" id="counter">1 / 18</span>
+  <span class="counter" id="counter">1 / 19</span>
 </header>
 
 <main id="stage">
@@ -309,10 +309,15 @@ td .path-ref { font-size: 12px; }
         <div class="who">Isabela Munhoz de Jesus <span>· RA 12526161668</span></div>
       </div>
       <div class="stack">
-        <span class="chip mongo">MongoDB simulado</span>
+        <span class="chip mongo">MongoDB Atlas</span>
         <span class="chip vec">Banco vetorial (Qdrant)</span>
-        <span class="chip ollama">Ollama — agente de IA</span>
+        <span class="chip ollama">Ollama Cloud — agente de IA</span>
+        <span class="chip api">Login por perfil</span>
+        <span class="chip front">Publicado na Vercel</span>
       </div>
+      <p class="small" style="margin-top:18px">
+        Demo ao vivo: <strong class="mono">a3-mvp-resource-backend.vercel.app</strong>
+      </p>
     </div>
   </section>
 
@@ -330,7 +335,7 @@ td .path-ref { font-size: 12px; }
       <div class="grid-3">
         <div class="card">
           <h4>1 · Dados operacionais</h4>
-          <p class="small">Cadastros, estoque, movimentações e políticas da empresa — <strong>simulados no MongoDB</strong> como se fosse o sistema legado.</p>
+          <p class="small">Cadastros, estoque, movimentações e políticas de uma empresa fictícia, guardados no <strong>MongoDB Atlas</strong> como se fosse o sistema legado.</p>
         </div>
         <div class="card">
           <h4>2 · Vetorização (RAG)</h4>
@@ -338,13 +343,13 @@ td .path-ref { font-size: 12px; }
         </div>
         <div class="card">
           <h4>3 · Agente de IA</h4>
-          <p class="small">O <strong>Ollama (LLM local)</strong> recebe o contexto recuperado e responde: relatórios de estoque, consultas e destinações.</p>
+          <p class="small">O <strong>Ollama Cloud</strong> (modelo <code>gemma4:31b-cloud</code>) recebe o contexto recuperado e responde: relatórios de estoque, consultas e destinações.</p>
         </div>
       </div>
       <div class="card" style="margin-top:16px; border-left:4px solid var(--warn)">
         <p class="small" style="color:#d9c9a3">
-          <strong>Escopo desta entrega (MVP):</strong> RF01 a RF06 operando sobre dados simulados.
-          Identificação de resíduos por foto (visão computacional), citada na visão de transformação,
+          <strong>Escopo desta entrega (MVP):</strong> RF01 a RF06 operando sobre dados fictícios,
+          publicado na Vercel e com login por perfil de setor. Identificação de resíduos por foto (visão computacional), citada na visão de transformação,
           fica para a próxima etapa.
         </p>
       </div>
@@ -361,11 +366,11 @@ td .path-ref { font-size: 12px; }
         <div class="arch-row">
           <div class="arch-box front">
             <div class="t">🌐 Frontend SPA</div>
-            <div class="d">HTML/CSS/JS sem framework<br>5 abas · tema escuro · responsivo</div>
+            <div class="d">HTML/CSS/JS sem framework<br>tela de login + 5 abas · responsivo<br>servido pela CDN da Vercel</div>
           </div>
           <div class="arch-box api" style="min-width:260px">
             <div class="t">⚙️ API Node.js (Express)</div>
-            <div class="d">server.js — desacoplada da IA (RNF03)<br>REST: /api/* · serve o frontend</div>
+            <div class="d">backend/app.js — desacoplada da IA (RNF03)<br>REST: /api/* · serverless na Vercel<br>auth.js: sessão + permissões por perfil</div>
           </div>
         </div>
 
@@ -373,7 +378,7 @@ td .path-ref { font-size: 12px; }
 
         <div class="arch-row">
           <div class="arch-box mongo">
-            <div class="t">🗄️ MongoDB <span style="font-weight:500;font-size:12px;color:var(--muted)">simulado</span></div>
+            <div class="t">🗄️ MongoDB <span style="font-weight:500;font-size:12px;color:var(--muted)">Atlas</span></div>
             <div class="d">db.js + data/seed.json<br>dados legados da empresa<br>12 materiais · 8 resíduos · 4 políticas</div>
           </div>
           <div class="arch-box vec">
@@ -382,7 +387,7 @@ td .path-ref { font-size: 12px; }
           </div>
           <div class="arch-box ollama">
             <div class="t">🤖 Ollama <span style="font-weight:500;font-size:12px;color:var(--muted)">agente de IA</span></div>
-            <div class="d">llama3.2 · localhost:11434<br>chat RAG e relatórios<br>fallback se offline</div>
+            <div class="d">Ollama Cloud · gemma4:31b-cloud<br>chat RAG e relatórios<br>fallback se offline</div>
           </div>
         </div>
       </div>
@@ -410,21 +415,24 @@ td .path-ref { font-size: 12px; }
     </div>
   </section>
 
-  <!-- ============ 4 · MONGODB SIMULADO ============ -->
-  <section class="slide" data-part="Infraestrutura" data-title="MongoDB simulado">
+  <!-- ============ 4 · MONGODB ATLAS ============ -->
+  <section class="slide" data-part="Infraestrutura" data-title="MongoDB Atlas">
     <div class="slide-inner">
-      <div class="eyebrow">Infraestrutura · 1 de 3</div>
-      <div class="badges"><span class="chip mongo">MongoDB simulado</span></div>
+      <div class="eyebrow">Infraestrutura · 1 de 4</div>
+      <div class="badges"><span class="chip mongo">MongoDB Atlas</span></div>
       <h2>O "banco legado" da empresa</h2>
       <div class="grid-2">
         <div class="card">
           <h4>O que é</h4>
           <p class="small">
-            <code class="path-ref">backend/db.js</code> reimplementa a <strong>API do MongoDB</strong>
+            <code class="path-ref">backend/db.js</code> expõe uma <strong>API no estilo MongoDB</strong>
             (<code>find</code>, <code>findOne</code>, <code>insertOne</code>, <code>updateOne</code>,
-            <code>deleteOne</code>, <code>count</code>) sobre um JSON persistido em
-            <code class="path-ref">data/db.json</code>. Simula o banco da empresa
-            <strong>sem exigir Docker ou servidor</strong> — e é 100% substituível por um Mongo real depois.
+            <code>deleteOne</code>, <code>count</code>). Em produção ela usa o <strong>driver oficial</strong>
+            conectado ao <strong>MongoDB Atlas</strong>.
+          </p>
+          <p class="small">
+            Sem <code>MONGODB_URI</code> (desenvolvimento) ou se o Atlas não responder, a mesma API roda
+            sobre um JSON local em <code class="path-ref">data/db.json</code>, e o site avisa que está em modo degradado.
           </p>
         </div>
         <div class="card">
@@ -435,20 +443,28 @@ td .path-ref { font-size: 12px; }
             <strong>empresa</strong> (EcoNova Indústria Ltda.)
           </p>
           <p class="small" style="margin-top:8px">
+            O seed só é aplicado em coleções <strong>vazias</strong> (idempotente): redeployar nunca duplica dados.
             <code class="path-ref">POST /api/reset</code> restaura o estado original da demo.
+          </p>
+          <p class="small" style="margin-top:8px">
+            Conversas do agente ficam na coleção <strong>conversas</strong>, ligadas ao perfil que as criou.
           </p>
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/db.js:42 — API estilo Mongo</h4>
-        <pre><code>function collection(name) {
+        <h4>backend/db.js:143 e :246 — mesma interface, dois motores</h4>
+        <pre><code>function mongoCollection(name) {               // Atlas (driver oficial)
+  const coll = mongo.collection(name);
   return {
-    find: (filter) =&gt; d[name].filter((doc) =&gt; matches(doc, filter)),
-    insertOne: (doc) =&gt; { const newDoc = { _id: randomUUID(), ...doc };
-                          d[name].push(newDoc); persist(); return newDoc; },
-    updateOne: (filter, update) =&gt; { ... Object.assign(doc, update.$set); ... },
-    deleteOne: (filter) =&gt; { ... d[name].splice(idx, 1); ... },
+    find: async (filter) =&gt; coll.find(toMongoFilter(filter)).toArray(),
+    insertOne: async (doc) =&gt; { await coll.insertOne({ _id: randomUUID(), ...doc }); ... },
+    updateOne: async (filter, update) =&gt; coll.findOneAndUpdate(..., { $set: ... }),
+    deleteOne: async (filter) =&gt; (await coll.deleteOne(...)).deletedCount &gt; 0,
   };
+}
+
+function collection(name) {                    // o resto do código só chama isto
+  return isMongo() ? mongoCollection(name) : memCollection(name);
 }</code></pre>
       </div>
       <p class="small" style="margin-top:12px">
@@ -460,7 +476,7 @@ td .path-ref { font-size: 12px; }
   <!-- ============ 5 · BANCO VETORIAL ============ -->
   <section class="slide" data-part="Infraestrutura" data-title="Banco vetorial (mimic do Qdrant)">
     <div class="slide-inner">
-      <div class="eyebrow">Infraestrutura · 2 de 3</div>
+      <div class="eyebrow">Infraestrutura · 2 de 4</div>
       <div class="badges"><span class="chip vec">Banco vetorial — papel do Qdrant</span></div>
       <h2>Indexar → buscar por similaridade</h2>
       <div class="grid-2">
@@ -477,7 +493,7 @@ td .path-ref { font-size: 12px; }
           <h4>Corpus (lido do Mongo)</h4>
           <p class="small">
             <strong>32 documentos</strong>: 12 materiais + 8 resíduos + 8 movimentações + 4 políticas
-            → vocabulário de ~250 termos indexado em memória.
+            → vocabulário de ~240 termos indexado em memória.
           </p>
           <p class="small" style="margin-top:8px">
             Para produção, troca-se por um Qdrant real mantendo a mesma interface
@@ -487,10 +503,10 @@ td .path-ref { font-size: 12px; }
       </div>
       <div class="card code-card">
         <h4>backend/vectorstore.js — funções-chave</h4>
-        <pre><code>// :46 buildCorpus() — a origem é sempre o MongoDB simulado
-for (const m of db.collection('materiais').all())
-  docs.push({ text: `${m.nome} ${m.categoria} ${m.descricao} ${m.risco}` });
-for (const r of db.collection('residuos').all()) { ... }   // + políticas e movimentações
+        <pre><code>// :46 buildCorpus() — a origem é sempre o MongoDB
+for (const m of await db.collection('materiais').all())
+  docs.push({ text: [m.nome, m.codigo, m.categoria, m.descricao, `risco ${m.risco}`].join(' | ') });
+for (const r of await db.collection('residuos').all()) { ... }   // + políticas e movimentações
 
 // :86 rebuild()  — gera TF-IDF e normaliza os vetores (indexação)
 // :146 search()  — embedda a pergunta e ordena por cosseno, retorna top-K</code></pre>
@@ -498,9 +514,9 @@ for (const r of db.collection('residuos').all()) { ... }   // + políticas e mov
       <div class="card" style="margin-top:14px">
         <h4>Endpoints (RF02)</h4>
         <div class="flow">
-          <span class="chip vec">POST /api/rag/reindex — server.js:156</span>
+          <span class="chip vec">POST /api/rag/reindex — app.js:285</span>
           <span class="arrow">·</span>
-          <span class="chip vec">GET /api/rag/search?q= — server.js:162</span>
+          <span class="chip vec">GET /api/rag/search?q= — app.js:291</span>
           <span class="arrow">·</span>
           <span class="chip front">botão "Reindexar RAG" no front</span>
         </div>
@@ -511,43 +527,92 @@ for (const r of db.collection('residuos').all()) { ... }   // + políticas e mov
   <!-- ============ 6 · OLLAMA ============ -->
   <section class="slide" data-part="Infraestrutura" data-title="Ollama — agente de IA">
     <div class="slide-inner">
-      <div class="eyebrow">Infraestrutura · 3 de 3</div>
-      <div class="badges"><span class="chip ollama">Ollama — agente de IA</span></div>
-      <h2>LLM local que responde as perguntas</h2>
+      <div class="eyebrow">Infraestrutura · 3 de 4</div>
+      <div class="badges"><span class="chip ollama">Ollama Cloud — agente de IA</span></div>
+      <h2>LLM na nuvem que responde as perguntas</h2>
       <div class="grid-3">
         <div class="card">
           <h4>Conexão</h4>
-          <p class="small">API HTTP local <code>localhost:11434/api/chat</code> com o modelo
-          <strong>llama3.2</strong> (configurável via <code>OLLAMA_MODEL</code>). Usado só em RF01 e RF03.</p>
+          <p class="small">API <code>ollama.com/api/chat</code> com <code>Authorization: Bearer</code> e o modelo
+          <strong>gemma4:31b-cloud</strong> (configurável via <code>OLLAMA_URL</code> / <code>OLLAMA_MODEL</code>;
+          o mesmo código fala com um Ollama local). Usado só em RF01 e RF03.</p>
         </div>
         <div class="card">
           <h4>Resiliência</h4>
-          <p class="small"><code class="path-ref">checkHealth()</code> com cache; se estiver offline,
+          <p class="small">Se a chamada falhar ou estourar o tempo,
           <code class="path-ref">fallback()</code> responde com regras locais e a UI mostra
           <strong>"Ollama offline"</strong>. O site nunca quebra.</p>
         </div>
         <div class="card">
           <h4>Status visível</h4>
-          <p class="small"><code class="path-ref">GET /api/health</code> (server.js:33) expõe disponibilidade
-          e modelos — vira o pílula verde/vermelha no topo do site e nos slides.</p>
+          <p class="small"><code class="path-ref">GET /api/health</code> (app.js:107) expõe disponibilidade
+          e modelos — vira a pílula verde/vermelha no topo do site.</p>
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/ollama.js:35 — chat com degradação elegante</h4>
+        <h4>backend/ollama.js:53 — chat com degradação elegante</h4>
         <pre><code>async function chat(messages, opts = {}) {
-  const ok = await checkHealth();
-  if (!ok)                                     // Ollama desligado?
-    return { text: fallback(messages), source: 'fallback' };
-
-  const res = await fetch(`${OLLAMA_URL}/api/chat`, { method: 'POST',
-    body: JSON.stringify({ model: opts.model || OLLAMA_MODEL, messages, stream: false }) });
-  ...
-  return { text: data.message.content, source: 'ollama', model: body.model };
+  try {
+    const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+      method: 'POST', headers: authHeaders(),          // Bearer na cloud
+      body: JSON.stringify({ model: OLLAMA_MODEL, messages, stream: false }),
+      signal: ctrl.signal,                             // timeout de 45 s
+    });
+    return { text: data.message.content, source: 'ollama', model: body.model };
+  } catch (e) {                                        // Ollama fora do ar?
+    return { text: fallback(messages), source: 'fallback', model: 'rule-based' };
+  }
 }</code></pre>
       </div>
       <p class="small" style="margin-top:12px">
-        <strong>Configuração da demo:</strong> <code class="mono">ollama serve</code> +
-        <code class="mono">ollama pull llama3.2</code> — sem rede externa, tudo roda na máquina.
+        <strong>Por que cloud:</strong> o site roda na Vercel (serverless), que não tem GPU nem um Ollama local.
+        A chave <code class="mono">OLLAMA_API_KEY</code> fica nas variáveis de ambiente, fora do código.
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 7 · LOGIN E PERFIS ============ -->
+  <section class="slide" data-part="Infraestrutura" data-title="Login e perfis por setor">
+    <div class="slide-inner">
+      <div class="eyebrow">Infraestrutura · 4 de 4</div>
+      <div class="badges"><span class="chip api">Login · sessão · permissões</span></div>
+      <h2>Cada setor vê e faz só o que lhe cabe</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h4>Perfis de demonstração (senha <code>demo123</code>)</h4>
+          <ul class="files">
+            <li><strong>Gestor Ambiental</strong> — visão completa, relatórios, reindexação</li>
+            <li><strong>Operador de Estoque</strong> — cadastra, edita e exclui materiais</li>
+            <li><strong>Analista de Resíduos</strong> — registra resíduos e destinações</li>
+            <li><strong>Auditor</strong> — somente leitura e trilha de auditoria</li>
+            <li><strong>Administrador</strong> — tudo, incluindo restaurar a demo</li>
+          </ul>
+          <p class="flow-note">Os perfis e a senha aparecem na própria tela de login: são fictícios de propósito, para a banca testar cada setor.</p>
+        </div>
+        <div class="card">
+          <h4>Como funciona — backend/auth.js</h4>
+          <ul class="files">
+            <li><code>POST /api/auth/login</code> devolve um <strong>token assinado (HMAC)</strong>, válido por 12 h, sem estado — funciona em serverless</li>
+            <li>Toda rota exige o token; sem ele a API responde <strong>401</strong></li>
+            <li>Rotas de escrita checam a permissão do perfil; sem ela, <strong>403</strong> — mesmo chamando a API direto</li>
+            <li>Cada conversa do agente pertence a quem a criou</li>
+            <li>A auditoria grava <strong>nome, e-mail, setor e perfil</strong> de quem agiu</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card code-card">
+        <h4>backend/auth.js:227 e app.js:188 — permissão declarativa por rota</h4>
+        <pre><code>function requirePermission(permission) {
+  return (req, res, next) =&gt; can(req.user, permission)
+    ? next()
+    : res.status(403).json({ error: `seu perfil (${req.user.roleLabel}) não tem permissão` });
+}
+
+app.post('/api/materiais', loginRequired, allow('materiais:write'), ...);   // Auditor → 403</code></pre>
+      </div>
+      <p class="small" style="margin-top:12px">
+        <strong>Limite assumido:</strong> é autenticação de demonstração. Em produção, troca-se por um provedor de identidade
+        (Auth0, Clerk, Cognito) mantendo a mesma interface <code>req.user</code> + <code>permissions</code>.
       </p>
     </div>
   </section>
@@ -568,10 +633,10 @@ for (const r of db.collection('residuos').all()) { ... }   // + políticas e mov
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>server.js:232</code> — <strong>POST /api/estoque/analise</strong>: monta prompt com materiais, resíduos e indicadores</li>
-            <li><code>index.html:70</code> — botão <strong>"Analisar com IA"</strong> no Dashboard</li>
-            <li><code>app.js</code> — handler <code>btnAnalise</code> exibe o relatório + fonte/latência</li>
-            <li><code>server.js:24</code> — grava evento na <strong>auditoria</strong> (RF06)</li>
+            <li><code>backend/app.js:458</code> — <strong>POST /api/estoque/analise</strong>: monta prompt com materiais, resíduos e indicadores</li>
+            <li><code>index.html:149</code> — botão <strong>"Analisar com IA"</strong> no Dashboard</li>
+            <li><code>public/js/app.js</code> — handler <code>btnAnalise</code> exibe o relatório + fonte/latência</li>
+            <li><code>backend/app.js:85</code> — grava evento na <strong>auditoria</strong> (RF06) com o perfil de quem pediu</li>
           </ul>
         </div>
         <div class="card">
@@ -586,14 +651,14 @@ for (const r of db.collection('residuos').all()) { ... }   // + políticas e mov
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/server.js:232</h4>
-        <pre><code>app.post('/api/estoque/analise', async (req, res) =&gt; {
-  const materiais = db.collection('materiais').all();      <span class="cmt">// lê o Mongo simulado</span>
-  const residuos  = db.collection('residuos').all();
-  const ind       = db.load().indicadores;                 <span class="cmt">// taxa 72%, meta 85%, CO₂…</span>
+        <h4>backend/app.js:458</h4>
+        <pre><code>app.post('/api/estoque/analise', loginRequired, allow('analise:run'), async (req, res) =&gt; {
+  const materiais = await db.collection('materiais').all();   <span class="cmt">// lê o MongoDB</span>
+  const residuos  = await db.collection('residuos').all();
+  const ind       = await db.config('indicadores');           <span class="cmt">// taxa 72%, meta 85%, CO₂…</span>
   const messages  = [{ role: 'system', content: PROMPT_RELATORIO }, { role: 'user', content: dados }];
   const result    = await ollama.chat(messages, { temperature: 0.3 });   <span class="cmt">// → agente IA</span>
-  audit('Análise de estoque', `Agente analisou ${materiais.length} materiais`);
+  await audit('Análise de estoque', `Agente analisou ${materiais.length} materiais`, req.user);
   res.json({ report: result.text, source: result.source, latency_ms, resumo });
 });</code></pre>
       </div>
@@ -619,8 +684,8 @@ for (const r of db.collection('residuos').all()) { ... }   // + políticas e mov
             <li><code>vectorstore.js:46</code> — <strong>buildCorpus()</strong>: lê as 4 coleções do Mongo</li>
             <li><code>vectorstore.js:86</code> — <strong>rebuild()</strong>: gera embeddings TF-IDF e indexa</li>
             <li><code>vectorstore.js:146</code> — <strong>search()</strong>: cosseno, retorna top-K</li>
-            <li><code>server.js:156</code> — <strong>POST /api/rag/reindex</strong> · <code>server.js:162</code> — <strong>GET /api/rag/search</strong></li>
-            <li><code>index.html:92</code> — botão <strong>"Reindexar RAG"</strong> na aba Estoque</li>
+            <li><code>app.js:285</code> — <strong>POST /api/rag/reindex</strong> · <code>app.js:291</code> — <strong>GET /api/rag/search</strong></li>
+            <li><code>index.html:171</code> — botão <strong>"Reindexar RAG"</strong> na aba Estoque (perfis com <code>rag:reindex</code>)</li>
           </ul>
         </div>
         <div class="card">
@@ -635,10 +700,10 @@ for (const r of db.collection('residuos').all()) { ... }   // + políticas e mov
         </div>
       </div>
       <div class="card code-card">
-        <h4>Fluxo completo — vectorstore.js + server.js</h4>
+        <h4>Fluxo completo — vectorstore.js + app.js</h4>
         <pre><code><span class="cmt">// 1 · leitura do Mongo (origem)          // 2 · indexação (papel do Qdrant)</span>
 buildCorpus()                              rebuild()
-  ├─ materiais  (12)                         ├─ vocabulário + IDF (~250 termos)
+  ├─ materiais  (12)                         ├─ vocabulário + IDF (~240 termos)
   ├─ residuos   (8)                          ├─ vetor TF-IDF normalizado p/ cada doc
   ├─ movimentacoes (8)                       └─ índice em memória pronto p/ cosseno
   └─ politicas  (4)                         search(pergunta) → embedda → top-6 documentos</code></pre>
@@ -662,10 +727,11 @@ buildCorpus()                              rebuild()
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>server.js:170</code> — <strong>buildContext()</strong>: busca top-6 no índice vetorial</li>
-            <li><code>server.js:192</code> — <strong>POST /api/chat</strong>: monta prompt + chama Ollama</li>
-            <li><code>index.html</code> — aba <strong>"Agente IA"</strong> (chat, sugestões, chips de fontes)</li>
-            <li><code>app.js</code> — envia histórico, mostra <code>latency_ms</code> e as fontes recuperadas</li>
+            <li><code>app.js:361</code> — <strong>buildContext()</strong>: busca top-6 no índice vetorial</li>
+            <li><code>app.js:383</code> — <strong>POST /api/chat</strong>: monta prompt + chama Ollama + salva a conversa</li>
+            <li><code>app.js:312</code> — <strong>/api/chats</strong>: histórico de conversas, cada uma do seu perfil</li>
+            <li><code>index.html</code> — aba <strong>"Agente IA"</strong> (chat, histórico, sugestões, chips de fontes)</li>
+            <li><code>public/js/app.js</code> — envia histórico, mostra <code>latency_ms</code> e as fontes recuperadas</li>
           </ul>
         </div>
         <div class="card">
@@ -681,8 +747,8 @@ buildCorpus()                              rebuild()
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/server.js:170 e :192 — RAG na prática</h4>
-        <pre><code>const hits   = vectorstore.search(question, 6);                    <span class="cmt">// etapa de recuperação</span>
+        <h4>backend/app.js:361 e :383 — RAG na prática</h4>
+        <pre><code>const hits   = await vectorstore.search(question, 6);                  <span class="cmt">// etapa de recuperação</span>
 const system = `Você é o agente ReSource...
   CONTEXTO DA EMPRESA (busca semântica no banco vetorial):
   ${context}                                                       <span class="cmt">// docs [1]..[6] com saldo, classe…</span>
@@ -709,8 +775,8 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>server.js:55/63/77/88</code> — <strong>GET/POST/PUT/DELETE /api/materiais</strong></li>
-            <li><code>server.js:97</code> — <strong>POST/GET /api/residuos</strong> (registro de descartes)</li>
+            <li><code>app.js:180/188/203/214</code> — <strong>GET/POST/PUT/DELETE /api/materiais</strong> (escrita exige <code>materiais:write</code>)</li>
+            <li><code>app.js:223/225</code> — <strong>GET/POST /api/residuos</strong> (registro exige <code>residuos:write</code>)</li>
             <li><code>app.js</code> — aba <strong>Estoque</strong>: busca, filtro por categoria, formulário criar/editar</li>
             <li><code>app.js</code> — aba <strong>Resíduos</strong>: cards com classe e destino</li>
           </ul>
@@ -727,11 +793,11 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/server.js:63 — CRUD que acorda a IA</h4>
-        <pre><code>app.post('/api/materiais', (req, res) =&gt; {
-  const doc = db.collection('materiais').insertOne({ ...req.body });   <span class="cmt">// 1 · persiste no Mongo</span>
-  vectorstore.rebuild();                                              <span class="cmt">// 2 · reindexa o vetorial (RF02)</span>
-  audit('Cadastro de material', `Novo material ${doc.codigo}`);        <span class="cmt">// 3 · log p/ auditoria (RF06)</span>
+        <h4>backend/app.js:188 — CRUD que acorda a IA</h4>
+        <pre><code>app.post('/api/materiais', loginRequired, allow('materiais:write'), async (req, res) =&gt; {
+  const doc = await db.collection('materiais').insertOne({ ...campos });      <span class="cmt">// 1 · persiste no Mongo</span>
+  await vectorstore.rebuild();                                               <span class="cmt">// 2 · reindexa o vetorial (RF02)</span>
+  await audit('Cadastro de material', `Novo material ${doc.codigo}`, req.user); <span class="cmt">// 3 · auditoria (RF06)</span>
   res.status(201).json(doc);
 });</code></pre>
       </div>
@@ -754,7 +820,7 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>server.js:122</code> — <strong>GET /api/dashboard</strong>: agrega tudo e devolve os KPIs</li>
+            <li><code>app.js:250</code> — <strong>GET /api/dashboard</strong>: agrega tudo e devolve os KPIs</li>
             <li><code>app.js</code> — aba <strong>Dashboard</strong>: cards, barras por categoria, movimentações</li>
             <li><code>app.js</code> — cards de <strong>resíduos por categoria</strong> e últimas movimentações</li>
             <li>Indicadores do seed: taxa reciclagem 72% · meta 85% · CO₂ 2.450 kg · economia R$ 18.750/mês</li>
@@ -771,11 +837,11 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/server.js:122</h4>
-        <pre><code>app.get('/api/dashboard', (req, res) =&gt; {
-  const materiais = db.collection('materiais').all();
-  const residuos  = db.collection('residuos').all();
-  const ind       = db.load().indicadores;        <span class="cmt">// taxa de reciclagem, meta, CO₂, economia</span>
+        <h4>backend/app.js:250</h4>
+        <pre><code>app.get('/api/dashboard', loginRequired, async (req, res) =&gt; {
+  const materiais = await db.collection('materiais').all();
+  const residuos  = await db.collection('residuos').all();
+  const ind       = await db.config('indicadores');      <span class="cmt">// taxa de reciclagem, meta, CO₂, economia</span>
   const porCategoria = agrupa(residuos, 'categoria');   <span class="cmt">// barras do gráfico</span>
   res.json({ indicadores: ind, totais, residuos_por_categoria, ultimas_movimentacoes });
 });</code></pre>
@@ -799,10 +865,10 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>server.js:24</code> — <strong>audit(evento, detalhe, usuario)</strong>: helper central</li>
-            <li><code>server.js:150</code> — <strong>GET /api/auditorias</strong> (últimos 50 registros)</li>
-            <li><code>app.js</code> — aba <strong>Auditoria</strong>: tabela com data/hora, evento, detalhe, usuário</li>
-            <li>Eventos registrados: consulta RAG, análise de estoque, CRUD, reindex, reset</li>
+            <li><code>app.js:85</code> — <strong>audit(evento, detalhe, usuario)</strong>: helper central</li>
+            <li><code>app.js:279</code> — <strong>GET /api/auditorias</strong> (últimos 50 registros)</li>
+            <li><code>public/js/app.js</code> — aba <strong>Auditoria</strong>: tabela com data/hora, evento, detalhe, usuário</li>
+            <li>Eventos registrados: login, logout, tentativa de login malsucedida, consulta RAG, análise de estoque, CRUD, reindex, reset</li>
           </ul>
         </div>
         <div class="card">
@@ -816,11 +882,15 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         </div>
       </div>
       <div class="card code-card">
-        <h4>backend/server.js:24 — helper usado em todos os endpoints</h4>
-        <pre><code>function audit(evento, detalhe, usuario = 'sistema') {
-  db.collection('auditorias').insertOne({ evento, detalhe, usuario });  <span class="cmt">// persiste no Mongo</span>
+        <h4>backend/app.js:85 — helper usado em todos os endpoints</h4>
+        <pre><code>async function audit(evento, detalhe, usuario = null) {
+  await db.collection('auditorias').insertOne({
+    evento, detalhe, data: new Date().toISOString(),
+    usuario: usuario?.name || 'sistema',                  <span class="cmt">// quem fez</span>
+    usuario_email: usuario?.email, usuario_setor: usuario?.sector, usuario_role: usuario?.role,
+  });
 }
-<span class="cmt">// chamado em: /api/chat · /api/estoque/analise · CRUD materiais · /api/rag/reindex · /api/reset</span></code></pre>
+<span class="cmt">// chamado em: login/logout · /api/chat · /api/estoque/analise · CRUD · /api/rag/reindex · /api/reset</span></code></pre>
       </div>
     </div>
   </section>
@@ -840,10 +910,10 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>db.js:42</code> — a API consome o banco por uma <strong>camada de leitura</strong> (find/insert…), nunca mexe no formato do seed</li>
-            <li><code>data/seed.json</code> — dados originais <strong>intactos</strong>; restauráveis via <code>POST /api/reset</code></li>
+            <li><code>db.js:246</code> — a API consome o banco por uma <strong>camada de acesso</strong> (find/insert…), nunca mexe no formato do seed</li>
+            <li><code>data/seed.json</code> — dados originais <strong>intactos</strong>; aplicados só em coleções vazias e restauráveis via <code>POST /api/reset</code></li>
             <li><code>vectorstore.js</code> — só <strong>lê</strong> as coleções para vetorizar; nada escreve de volta</li>
-            <li>Nenhum schema é migrado: em produção, basta apontar <code>db.js</code> para o Mongo real</li>
+            <li>Nenhum schema é migrado: trocar de banco é só mudar a <code>MONGODB_URI</code></li>
           </ul>
         </div>
         <div class="card">
@@ -861,8 +931,8 @@ res.json({ reply: result.text, sources: hits, latency_ms });       <span class="
         <pre><code><span class="cmt">// A ReSource enxerga o banco legado SEM conhecer sua implementação:</span>
 const material = db.collection('materiais');   <span class="cmt">// mesma interface do driver Mongo</span>
 material.find({ categoria: 'Químico' });       <span class="cmt">// leitura pontual, sem migration</span>
-material.insertOne({ ... });                   <span class="cmt">// escrita só na camada simulada</span>
-<span class="cmt">// Em produção: substituir db.js por mongodb driver — resto do código não muda.</span></code></pre>
+material.insertOne({ ... });                   <span class="cmt">// escrita pela mesma interface</span>
+<span class="cmt">// Atlas ou arquivo local: db.js escolhe o motor — o resto do código não muda.</span></code></pre>
       </div>
     </div>
   </section>
@@ -883,17 +953,17 @@ material.insertOne({ ... });                   <span class="cmt">// escrita só 
           <h4>Onde está aplicado</h4>
           <ul class="files">
             <li><code>vectorstore.js:146</code> — busca <strong>em memória</strong>: índice local, <strong>sem rede externa</strong> → <strong>&lt; 10 ms</strong></li>
-            <li><code>server.js:192</code> — devolve <code>latency_ms</code> de cada resposta</li>
-            <li><code>app.js</code> — o chat exibe a latência real embaixo da mensagem (<em>"ollama · llama3.2 · 3542 ms"</em>)</li>
-            <li><code>server.js:33</code> — <code>/api/health</code> mostra status de cada componente</li>
+            <li><code>app.js:383</code> — devolve <code>latency_ms</code> de cada resposta</li>
+            <li><code>public/js/app.js</code> — o chat exibe a latência real embaixo da mensagem (fonte · modelo · ms)</li>
+            <li><code>app.js:107</code> — <code>/api/health</code> mostra status de cada componente</li>
           </ul>
         </div>
         <div class="card">
           <h4>Números medidos na demo</h4>
           <p class="small">
             <strong>Busca vetorial (Qdrant-like):</strong> ~2–5 ms &nbsp;<span class="yes">✓ bem dentro do RNF</span><br><br>
-            <strong>Resposta do LLM:</strong> 3–16 s (llama3.2 no hardware local) — medida e
-            <strong>exibida na UI</strong> com transparência.<br><br>
+            <strong>Resposta do LLM:</strong> depende do Ollama Cloud (gemma4:31b-cloud) — medida a cada
+            pergunta e <strong>exibida na UI</strong> e na auditoria com transparência.<br><br>
             O RNF02 do checkpoint fala em <strong>"resposta da busca"</strong> — a busca é o gargalo
             controlado; o LLM é reportado à parte.
           </p>
@@ -903,7 +973,7 @@ material.insertOne({ ... });                   <span class="cmt">// escrita só 
         <h4>Prova de desempenho — fluxo medido</h4>
         <pre><code>POST /api/chat  →  t0 = Date.now()
   vectorstore.search(pergunta, 6)          <span class="cmt">// ~2-5 ms  (índice local, RNF02 ✓)</span>
-  ollama.chat(...)                          <span class="cmt">// 3-16 s   (llama3.2 local, medido)</span>
+  ollama.chat(...)                          <span class="cmt">// Ollama Cloud, medido a cada chamada</span>
 res.json({ ..., latency_ms: Date.now() - t0 })   <span class="cmt">// exibido no chat e na auditoria</span></code></pre>
       </div>
     </div>
@@ -924,11 +994,12 @@ res.json({ ..., latency_ms: Date.now() - t0 })   <span class="cmt">// exibido no
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>server.js</code> — rotas REST <strong>não importam</strong> internals da IA (só chamam <code>ollama.chat</code>)</li>
-            <li><code>ollama.js</code> — módulo isolado: trocar LLM = mudar só este arquivo</li>
+            <li><code>backend/app.js</code> — rotas REST <strong>não importam</strong> internals da IA (só chamam <code>ollama.chat</code>)</li>
+            <li><code>ollama.js</code> — módulo isolado: trocar LLM (local ↔ cloud) = mudar só este arquivo ou o <code>.env</code></li>
             <li><code>vectorstore.js</code> — trocar por Qdrant real = trocar só este módulo</li>
-            <li><code>db.js</code> — trocar por Mongo real = trocar só este módulo</li>
-            <li><code>frontend/</code> — consome apenas <code>/api/*</code>, não conhece a IA</li>
+            <li><code>db.js</code> — Atlas ou arquivo local atrás da mesma interface</li>
+            <li><code>auth.js</code> — trocar por Auth0/Clerk = trocar só este módulo</li>
+            <li><code>public/</code> — consome apenas <code>/api/*</code>, não conhece a IA</li>
           </ul>
         </div>
         <div class="card">
@@ -942,13 +1013,14 @@ res.json({ ..., latency_ms: Date.now() - t0 })   <span class="cmt">// exibido no
         </div>
       </div>
       <div class="card code-card">
-        <h4>Fronteiras dos módulos (imports do server.js)</h4>
+        <h4>Fronteiras dos módulos (imports do backend/app.js)</h4>
         <pre><code>const db          = require('./db');           <span class="cmt">// dados legados</span>
 const vectorstore = require('./vectorstore');   <span class="cmt">// embeddings + busca</span>
 const ollama      = require('./ollama');        <span class="cmt">// agente IA (fica off sem quebrar)</span>
+const auth        = require('./auth');          <span class="cmt">// login + permissões por perfil</span>
 
 app.post('/api/chat', async (req, res) =&gt; {
-  const hits   = vectorstore.search(...);       <span class="cmt">// pode ser trocado p/ Qdrant</span>
+  const hits   = await vectorstore.search(...); <span class="cmt">// pode ser trocado p/ Qdrant</span>
   const result = await ollama.chat(...);        <span class="cmt">// pode ser trocado p/ outro LLM</span>
 });</code></pre>
       </div>
@@ -970,9 +1042,9 @@ app.post('/api/chat', async (req, res) =&gt; {
         <div class="card">
           <h4>Onde está aplicado</h4>
           <ul class="files">
-            <li><code>frontend/css/style.css</code> — <strong>mobile-first</strong> com 3 breakpoints (1100 / 820 / 640px)</li>
+            <li><code>public/css/style.css</code> — <strong>mobile-first</strong> com 3 breakpoints (900 / 820 / 640px)</li>
             <li>Layouts em <strong>flexbox/grid</strong> + <code>auto-fit</code> nos KPIs e cards de resíduos</li>
-            <li>Tabelas com <strong>scroll horizontal</strong>; chat empilha em telas pequenas</li>
+            <li>Tabelas com <strong>scroll horizontal</strong>; chat e tela de login empilham em telas pequenas</li>
             <li><code>viewport meta</code> + áreas de toque mínimas (botões, chips, abas)</li>
           </ul>
         </div>
@@ -987,7 +1059,7 @@ app.post('/api/chat', async (req, res) =&gt; {
         </div>
       </div>
       <div class="card code-card">
-        <h4>frontend/css/style.css — breakpoints</h4>
+        <h4>public/css/style.css — breakpoints</h4>
         <pre><code>@media (max-width: 820px) { .grid-2 { grid-template-columns: 1fr; } }   <span class="cmt">// painéis empilham</span>
 @media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }   <span class="cmt">// formulários 1 coluna</span>
 @media (max-width: 640px) { .msg { max-width: 100%; } }                   <span class="cmt">// chat ocupa a largura</span>
@@ -1017,49 +1089,53 @@ app.post('/api/chat', async (req, res) =&gt; {
               <td class="yes">✓ lê (materiais, resíduos, indicadores)</td>
               <td class="no">— não usado</td>
               <td class="yes">✓ gera relatório</td>
-              <td><span class="path-ref">server.js:232</span></td></tr>
+              <td><span class="path-ref">app.js:458</span></td></tr>
             <tr><td class="id">RF02</td><td>Vetorização: Mongo → Qdrant</td>
               <td class="yes">✓ origem dos dados</td>
               <td class="yes">✓ indexa e busca</td>
               <td class="no">— não usado</td>
-              <td><span class="path-ref">vectorstore.js:46/86/146 · server.js:156/162</span></td></tr>
+              <td><span class="path-ref">vectorstore.js:46/86/146 · app.js:285/291</span></td></tr>
             <tr><td class="id">RF03</td><td>Consultor RAG (chat)</td>
               <td class="yes">✓ via índice (dados vetorizados)</td>
               <td class="yes">✓ recupera top-6</td>
               <td class="yes">✓ responde a pergunta</td>
-              <td><span class="path-ref">server.js:170/192 · aba Agente IA</span></td></tr>
+              <td><span class="path-ref">app.js:361/383 · aba Agente IA</span></td></tr>
             <tr><td class="id">RF04</td><td>Gestão de materiais (CRUD)</td>
               <td class="yes">✓ grava/altera</td>
               <td class="yes">✓ rebuild() a cada CRUD</td>
               <td class="no">— não usado</td>
-              <td><span class="path-ref">server.js:55/63/77/88</span></td></tr>
+              <td><span class="path-ref">app.js:180/188/203/214</span></td></tr>
             <tr><td class="id">RF05</td><td>Dashboard de indicadores</td>
               <td class="yes">✓ agrega coleções</td>
               <td class="no">— não usado</td>
               <td class="no">— não usado*</td>
-              <td><span class="path-ref">server.js:122</span></td></tr>
+              <td><span class="path-ref">app.js:250</span></td></tr>
             <tr><td class="id">RF06</td><td>Auditoria do agente</td>
               <td class="yes">✓ grava auditorias</td>
               <td class="no">— não usado</td>
               <td class="yes">✓ ações do LLM são logadas</td>
-              <td><span class="path-ref">server.js:24/150</span></td></tr>
+              <td><span class="path-ref">app.js:85/279</span></td></tr>
             <tr><td class="id">RNF01</td><td>Integração não invasiva</td>
               <td class="yes">✓ camada de leitura (db.js)</td>
               <td class="no">—</td><td class="no">—</td>
-              <td><span class="path-ref">db.js:42 · data/seed.json</span></td></tr>
+              <td><span class="path-ref">db.js:143/246 · data/seed.json</span></td></tr>
             <tr><td class="id">RNF02</td><td>Desempenho (busca ≤ 3s)</td>
               <td class="no">—</td>
               <td class="yes">✓ busca local ~ms</td>
               <td class="yes">✓ latência medida/exibida</td>
-              <td><span class="path-ref">vectorstore.js:146 · server.js:192 · app.js</span></td></tr>
+              <td><span class="path-ref">vectorstore.js:146 · app.js:383</span></td></tr>
             <tr><td class="id">RNF03</td><td>Modularidade (API desacoplada)</td>
               <td class="yes">✓ módulo db.js</td>
               <td class="yes">✓ módulo vectorstore.js</td>
               <td class="yes">✓ módulo ollama.js + fallback</td>
-              <td><span class="path-ref">server.js (requires) · ollama.js:35</span></td></tr>
+              <td><span class="path-ref">app.js (requires) · ollama.js:53</span></td></tr>
             <tr><td class="id">RNF04</td><td>Responsividade</td>
               <td class="no">—</td><td class="no">—</td><td class="no">—</td>
-              <td><span class="path-ref">frontend/css/style.css (3 breakpoints)</span></td></tr>
+              <td><span class="path-ref">public/css/style.css (3 breakpoints)</span></td></tr>
+            <tr><td class="id">Extra</td><td>Login e permissões por perfil</td>
+              <td class="yes">✓ auditoria e conversas com o perfil</td>
+              <td class="no">—</td><td class="no">—</td>
+              <td><span class="path-ref">auth.js · app.js:147</span></td></tr>
           </tbody>
         </table>
       </div>
@@ -1074,22 +1150,26 @@ app.post('/api/chat', async (req, res) =&gt; {
       <h2>Como rodar e o que mostrar</h2>
       <div class="grid-2">
         <div class="card">
-          <h4>Subir o ambiente</h4>
-          <pre><code>cd A3-MVP/backend
+          <h4>Acessar a demo</h4>
+          <p class="small">
+            No ar: <strong class="mono">a3-mvp-resource-backend.vercel.app</strong><br>
+            Slides em <span class="mono">/apresentacao</span> · senha de todos os perfis: <span class="mono">demo123</span>
+          </p>
+          <h4 style="margin-top:14px">Rodar localmente</h4>
+          <pre><code>cd A3-MVP
+cp .env.example .env     <span class="cmt"># MONGODB_URI, OLLAMA_API_KEY…</span>
 npm install
-npm start                <span class="cmt"># API + frontend</span>
-
-ollama serve             <span class="cmt"># agente de IA</span>
-ollama pull llama3.2     <span class="cmt"># modelo padrão</span></code></pre>
-          <p class="small" style="margin-top:10px">Abra <strong>http://localhost:3000</strong> — slides em <span class="mono">/apresentacao.html</span></p>
+npm start                <span class="cmt"># API + frontend em :3000</span></code></pre>
+          <p class="small" style="margin-top:10px">Sem <span class="mono">MONGODB_URI</span> o banco roda em arquivo local; sem Ollama o agente usa o fallback.</p>
         </div>
         <div class="card">
-          <h4>Roteiro da demo (4 passos)</h4>
+          <h4>Roteiro da demo (5 passos)</h4>
           <ol class="steps">
+            <li><strong>Login</strong> como <strong>Auditor</strong> → somente leitura, sem botões de cadastro; sair e entrar como <strong>Gestor</strong></li>
             <li><strong>Dashboard</strong> → KPIs do Mongo (RF05) → botão <strong>"Analisar com IA"</strong> (RF01)</li>
             <li><strong>Estoque</strong> → CRUD (RF04) → <strong>"Reindexar RAG"</strong> (RF02)</li>
             <li><strong>Agente IA</strong> → <em>"Qual o saldo de plásticos?"</em> com fontes e ms (RF03 + RNF02)</li>
-            <li><strong>Auditoria</strong> → tudo que foi feito fica registrado (RF06)</li>
+            <li><strong>Auditoria</strong> → tudo que foi feito fica registrado com o perfil de quem fez (RF06)</li>
           </ol>
         </div>
       </div>
