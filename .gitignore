@@ -18,5 +18,7 @@ npm-debug.log*
 .DS_Store
 .vercel
 
-# Claude Code (config pessoal)
-.claude/settings.local.json
+
+# Claude Code (fica só local, não vai para o GitHub)
+.claude/
+CLAUDE.md

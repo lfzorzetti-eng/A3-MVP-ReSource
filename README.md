@@ -1,217 +1,261 @@
 # ReSource — Gestão Inteligente e Zero Waste com IA
 
-MVP web da plataforma **ReSource**, construído sobre os checkpoints 1 e 2 da A3.
+![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
+![Groq](https://img.shields.io/badge/IA-Groq-F55036)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES2022-F7DF1E?logo=javascript&logoColor=black)
+![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
+![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
+![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)
 
-**🌐 Demo ao vivo:** https://a3-mvp-resource-backend.vercel.app
-**📊 Apresentação do projeto:** https://a3-mvp-resource-backend.vercel.app/apresentacao
+Plataforma web de gestão de materiais e resíduos com foco em **Zero Waste**, que conecta o banco de
+dados legado de uma indústria a um **agente de IA** capaz de responder perguntas sobre estoque,
+resíduos e indicadores ambientais — com rastreabilidade completa de cada resposta.
 
-O sistema conecta o **banco de dados legado** de uma indústria fictícia (EcoNova Indústria) a um
-**agente de IA** que responde perguntas sobre materiais, resíduos e indicadores ambientais, com
-rastreabilidade de auditoria.
+Projeto desenvolvido como MVP para a avaliação A3, aplicado à empresa fictícia **EcoNova Indústria**.
+
+**Demo:** https://a3-mvp-resource-backend.vercel.app
 
 ---
 
-## O problema
+## Sumário
 
-A EcoNova Industria tem hoje o controle de materiais e resíduos espalhado em um banco legado e em
-planilhas. Isso gera três problemas concretos:
+- [Visão geral](#visão-geral)
+- [Funcionalidades](#funcionalidades)
+- [Tecnologias](#tecnologias)
+- [Arquitetura](#arquitetura)
+- [Como executar](#como-executar)
+- [Variáveis de ambiente](#variáveis-de-ambiente)
+- [Acesso de demonstração](#acesso-de-demonstração)
+- [API](#api)
+- [Requisitos atendidos](#requisitos-atendidos)
+- [Segurança](#segurança)
+- [Estrutura do projeto](#estrutura-do-projeto)
+- [Decisões técnicas](#decisões-técnicas)
 
-1. **Ninguém consegue perguntar "onde está o que sobra?"** — os dados existem, mas só em forma de
-   tabelas e registros soltos.
-2. **O relatório ambiental é manual** — cada fechamento exige alguém filtrando registros à mão,
-   o que atrasa a decisão e aumenta o erro.
-3. **Não há rastreabilidade** — não existe histórico de qual consulta do agente foi feita, com qual
-   fonte e por quem.
+---
 
-O ReSource resolve os três sem reescrever o banco: ele **lê** o legado, **indexa** vetorialmente e
-**explica** o resultado com um agente de IA.
+## Visão geral
 
-## O que o MVP entrega
+A EcoNova mantém o controle de materiais e resíduos em um banco legado e em planilhas, o que gera
+três problemas:
 
-| Aba | O que faz |
+1. **Dados sem acesso fácil** — as informações existem, mas apenas como tabelas e registros soltos.
+2. **Relatórios ambientais manuais** — cada fechamento depende de filtragem manual, atrasando
+   decisões e aumentando erros.
+3. **Falta de rastreabilidade** — não há histórico de quais consultas foram feitas, por quem e com
+   quais fontes.
+
+O ReSource resolve esses pontos **sem reescrever o banco**: ele lê os dados do legado, indexa o
+conteúdo para busca semântica e usa um agente de IA para explicar os resultados, registrando tudo em
+auditoria.
+
+## Funcionalidades
+
+| Módulo | Descrição |
 |---|---|
-| **Dashboard** | Indicadores ambientais consolidados: massa residual, percentual recuperado e conformidade ESG. Inclui botão "Analisar com IA" que gera um relatório executivo do agente. |
-| **Estoque** | CRUD completo de insumos (materiais): cadastro, edição, consulta e descarte com validação de saldo. |
-| **Resíduos** | Resíduos gerados por etapa de produção, com classificação, destinação e rastreabilidade. |
-| **Agente IA** | Chat RAG: cada pergunta é embedada, recupera os documentos relevantes do banco e monta o contexto para o LLM. O histórico de conversas é persistido. |
-| **Auditoria** | Registro de tudo que o agente respondeu, com as fontes usadas e o tempo de resposta. |
+| **Dashboard** | Indicadores ambientais consolidados (massa residual, percentual recuperado, conformidade ESG) e relatório executivo gerado pelo agente de IA. |
+| **Estoque** | CRUD completo de insumos, com validação de saldo no descarte. |
+| **Resíduos** | Registro de resíduos por etapa de produção, com classificação e destinação. |
+| **Agente IA** | Chat com RAG (*Retrieval-Augmented Generation*): cada pergunta busca os documentos mais relevantes do banco antes de ser enviada ao modelo. O histórico de conversas é persistido. |
+| **Auditoria** | Registro de cada resposta do agente, com fontes utilizadas, tempo de resposta e identidade de quem executou. |
+| **Controle de acesso** | Perfis por setor com permissões distintas, aplicadas no frontend e validadas no backend. |
 
-Além do chat, existem páginas de **apresentação** do projeto e de **API** (documentação viva dos
-endpoints, gerada a partir do próprio backend).
+## Tecnologias
 
-## Acesso de demonstração
+| Camada | Tecnologia |
+|---|---|
+| **Frontend** | HTML5, CSS3 e JavaScript puro (SPA, mobile-first, sem framework) |
+| **Backend** | Node.js 22 · Express 4 · API REST |
+| **Banco de dados** | MongoDB Atlas (driver oficial `mongodb`) · modo simulado em arquivo JSON para desenvolvimento |
+| **Busca semântica** | Índice vetorial próprio com TF-IDF e similaridade de cosseno (interface inspirada no Qdrant) |
+| **Inteligência artificial** | Groq API (compatível com OpenAI) · modelo padrão `openai/gpt-oss-120b` |
+| **Autenticação** | Sessão sem estado com token assinado por HMAC (`crypto` nativo do Node) |
+| **Infraestrutura** | Vercel (Serverless Functions + CDN) |
+| **Outras bibliotecas** | `cors`, `dotenv` |
 
-A plataforma exige login. Como este é um MVP de demonstração, os perfis e as senhas são **fictícios**
-e aparecem na própria tela de entrada. Cada perfil reproduz as permissões de um setor:
-
-| Perfil | E-mail | Senha | O que pode fazer |
-|---|---|---|---|
-| **Gestor Ambiental** | `gestor@econova.com` | `demo123` | Visão completa: estoque, resíduos, relatórios, auditoria e reindexação |
-| **Operador de Estoque** | `estoque@econova.com` | `demo123` | Cadastro, edição e exclusão de materiais |
-| **Analista de Resíduos** | `residuos@econova.com` | `demo123` | Registro de resíduos e consultas |
-| **Auditor** | `auditor@econova.com` | `demo123` | Somente leitura: dashboard, relatórios e auditoria |
-| **Administrador** | `admin@econova.com` | `demo123` | Acesso total e restauração da demo |
-
-> ⚠️ **Isto não é autenticação de produção.** As credenciais são públicas de propósito e existem para
-> demonstrar a experiência por setor. Para produção, substitua `backend/auth.js` por um provedor de
-> identidade (Auth0, Clerk, Cognito etc.) mantendo a interface `req.user` + `permissions`.
-
-A sessão é um token assinado com HMAC (sem estado, compatível com serverless), válido por 12 horas.
-Cada conversa do Agente IA fica vinculada ao perfil que a criou; ninguém vê o histórico de outro
-setor. A auditoria passa a registrar o nome, o e-mail, o setor e o perfil de quem executou cada ação.
-
-## Como funciona
+## Arquitetura
 
 ```
 navegador ──► CDN da Vercel ──► /            (SPA estática em public/)
                     │
-                    └──► /api/* ──► serverless function (api/index.js → backend/app.js)
+                    └──► /api/* ──► Serverless Function (api/index.js → backend/app.js)
                                           │
                                           ├──► MongoDB Atlas   (materiais, resíduos, políticas,
                                           │                     conversas, auditoria)
                                           └──► Groq            (chat RAG e análise de estoque)
 ```
 
-Três peças trabalham juntas:
+**MongoDB Atlas como fonte da verdade.** O banco é acessado por uma camada de coleções (`find`,
+`insertOne`, `updateOne`, `deleteOne`) sem alterar o modelo original dos dados. O pool de conexões é
+criado no *cold start* e reaproveitado entre requisições. O seed de demonstração (`data/seed.json`) é
+aplicado apenas em coleções vazias, de forma idempotente.
 
-**1. MongoDB Atlas como fonte da verdade.**
-O banco legado da empresa é consumido por uma API no estilo coleções (`find`, `insertOne`,
-`updateOne`, `deleteOne`), sem alterar o modelo original dos dados. Na produção roda em **MongoDB
-Atlas** (driver oficial); o pool de conexões é criado no cold start da função e reaproveitado entre
-requisições. O seed de demonstração (`data/seed.json` — 12 materiais, 8 resíduos, 4 políticas) é
-aplicado automaticamente nas coleções vazias e é **idempotente**, então redeployar nunca duplica
-dados.
+**Busca vetorial local.** Materiais, resíduos e políticas são convertidos em vetores TF-IDF e
+consultados por similaridade de cosseno. A interface de indexação e busca segue o modelo do Qdrant,
+mas roda dentro da própria aplicação, sem serviço externo.
 
-**2. Banco vetorial simulado (mimic do Qdrant).**
-Cada material, resíduo e política vira um documento vetorizado por **TF-IDF** local, com
-similaridade de **cosseno** na busca. É um mimic deliberado do Qdrant: a mesma interface de
-indexação/rebusca, sem depender de um serviço extra — o que mantém o MVP auto-contido.
+**Agente de IA desacoplado.** O módulo `backend/groq.js` é o único que fala com o LLM. Nenhuma rota de
+dados depende dele: se a IA estiver indisponível, o CRUD segue funcionando e o agente responde por um
+fallback determinístico, com o status exibido na interface.
 
-**3. Groq como agente de IA.**
-O `backend/groq.js` fala com a API do Groq (compatível com OpenAI), usando `Authorization: Bearer`
-com a `GROQ_API_KEY`. O modelo padrão é o **`openai/gpt-oss-120b`** (troque com `GROQ_MODEL`).
-O app é desacoplado da IA: se o LLM estiver indisponível, as respostas de dados continuam
-funcionando e o agente responde por um fallback determinístico, com o status exibido na interface
-(`GET /api/health` reporta `llm.available`).
-
-O `backend/app.js` é a **API desacoplada da IA** (RF03): nenhuma rota de CRUD depende do módulo
-de LLM para entregar dados.
-
-### Ciclo de uma pergunta do Agente IA
+### Fluxo de uma pergunta ao agente
 
 ```
 "Qual o destino dos resíduos perigosos?"
         │
         ├─► vetorização da pergunta (TF-IDF)
-        ├─► busca de similaridade no índice (cosseno)
-        ├─► contexto recuperado: materiais, resíduos e políticas mais relevantes
-        ├─► prompt montado com o contexto + histórico da conversa
-        ├─► Groq (openai/gpt-oss-120b) gera a resposta
-        └─► resposta + fontes + auditoria persistidas no Atlas
+        ├─► busca por similaridade no índice (cosseno)
+        ├─► recuperação dos materiais, resíduos e políticas mais relevantes
+        ├─► montagem do prompt com contexto + histórico da conversa
+        ├─► geração da resposta pelo Groq
+        └─► resposta, fontes e auditoria persistidas no MongoDB
 ```
 
-## Requisitos atendidos
+## Como executar
 
-| ID | Requisito | Onde |
-|----|-----------|------|
-| RF01 | Análise de estoque com agente IA | Dashboard → "Analisar com IA" (`POST /api/estoque/analise`) |
-| RF02 | Vetorização: leitura do MongoDB e indexação | `POST /api/rag/reindex`, busca em `GET /api/rag/search` |
-| RF03 | Consultor RAG (chat) | Aba "Agente IA" (`POST /api/chat`) |
-| RF04 | Gestão de materiais (CRUD) | Aba "Estoque" |
-| RF05 | Dashboard de indicadores | Aba "Dashboard" (`GET /api/dashboard`) |
-| RF06 | Auditoria / rastreabilidade | Aba "Auditoria" (`GET /api/auditorias`) |
-| RNF01 | Integração não invasiva | A API apenas lê/simula o banco legado, não altera o modelo original |
-| RNF02 | Resposta em até 3s | Busca vetorial é local (<50 ms); latência do LLM exibida na UI |
-| RNF03 | API Node.js desacoplada da IA | `app.js` não depende de `groq.js` para dados; chat/análise degradam com fallback |
-| RNF04 | Interface responsiva | CSS mobile-first |
+**Pré-requisitos:** Node.js 22 e npm. MongoDB Atlas e chave do Groq são opcionais em
+desenvolvimento.
+
+```bash
+git clone <url-do-repositorio>
+cd A3-MVP
+npm install
+cp .env.example .env    # preencha os valores necessários
+npm run dev             # http://localhost:3000
+```
+
+| Comando | Descrição |
+|---|---|
+| `npm run dev` | Servidor local com reinício automático ao salvar |
+| `npm start` | Servidor local sem *watch* |
+| `npm run smoke` | Teste ponta a ponta da API (com o servidor em execução) |
+
+Sem `MONGODB_URI`, a aplicação usa o banco simulado em `data/db.json`. Sem `GROQ_API_KEY`, o agente
+responde pelo fallback local.
+
+### Deploy
+
+O projeto está configurado para a Vercel (`vercel.json`): os arquivos de `public/` são servidos pela
+CDN e as rotas `/api/*` são encaminhadas para a Serverless Function em `api/index.js`.
+
+```bash
+vercel          # preview
+vercel --prod   # produção
+```
+
+## Variáveis de ambiente
+
+O modelo completo está em [`.env.example`](.env.example).
+
+| Variável | Descrição |
+|---|---|
+| `MONGODB_URI`, `MONGODB_DB` | Conexão com o MongoDB Atlas. Sem URI, usa o modo simulado. |
+| `GROQ_API_KEY`, `GROQ_MODEL` | Credencial e modelo do agente de IA. |
+| `SESSION_SECRET`, `SESSION_TTL_HOURS` | Segredo de assinatura e validade da sessão (padrão: 12 h). |
+| `ADMIN_TOKEN` | Token exigido por `POST /api/reset` em produção. |
+| `RATE_LIMIT`, `RATE_LIMIT_CHAT`, `RATE_LIMIT_ANALISE`, `RATE_LIMIT_LOGIN` | Limite de requisições por IP por minuto. |
+| `PORT` | Porta do servidor local (padrão: 3000). |
+
+## Acesso de demonstração
+
+Os perfis abaixo são **fictícios** e exibidos na própria tela de login. Cada um reproduz as
+permissões de um setor:
+
+| Perfil | E-mail | Senha | Permissões |
+|---|---|---|---|
+| Gestor Ambiental | `gestor@econova.com` | `demo123` | Visão completa: estoque, resíduos, relatórios, auditoria e reindexação |
+| Operador de Estoque | `estoque@econova.com` | `demo123` | Cadastro, edição e exclusão de materiais |
+| Analista de Resíduos | `residuos@econova.com` | `demo123` | Registro de resíduos e consultas |
+| Auditor | `auditor@econova.com` | `demo123` | Somente leitura: dashboard, relatórios e auditoria |
+| Administrador | `admin@econova.com` | `demo123` | Acesso total e restauração da demo |
+
+> **Atenção:** este modelo de autenticação é apenas para demonstração. Em produção, `backend/auth.js`
+> deve ser substituído por um provedor de identidade (Auth0, Clerk, Cognito etc.), mantendo a
+> interface `req.user` + `permissions`.
 
 ## API
 
-> Todas as rotas abaixo exigem `Authorization: Bearer <token>` obtido em `POST /api/auth/login`,
-> exceto `GET /api/health`, `POST /api/auth/login` e `GET /api/auth/demo-users`. Rotas de escrita
-> também validam a permissão do perfil.
+Todas as rotas exigem `Authorization: Bearer <token>` (obtido em `POST /api/auth/login`), exceto
+`GET /api/health`, `POST /api/auth/login` e `GET /api/auth/demo-users`. Rotas de escrita também
+validam a permissão do perfil.
 
-| Método & rota | Descrição |
+| Método e rota | Descrição |
 |---|---|
-| `POST /api/auth/login` | Autentica um perfil demo e devolve o token de sessão |
-| `GET /api/auth/demo-users` | Perfis fictícios disponíveis (inclui a senha de demonstração) |
-| `GET /api/auth/me` \| `POST /api/auth/logout` | Perfil da sessão atual / encerramento |
-| `GET /api/health` | Status do banco (real ou simulado), do índice vetorial e do Groq |
-| `GET\|POST\|PUT\|DELETE /api/materiais` | CRUD de insumos (RF04) |
-| `GET\|POST /api/residuos` | Resíduos e destinos |
-| `GET /api/dashboard` | Indicadores ambientais (RF05) |
-| `POST /api/chat` | Consultor RAG (RF03): recupera contexto por similaridade → envia ao Groq → persiste a conversa |
-| `GET\|POST /api/chats`, `GET\|DELETE /api/chats/:id` | Histórico de conversas do Agente IA |
-| `POST /api/estoque/analise` | Relatório executivo do agente (RF01) |
-| `POST /api/rag/reindex`, `GET /api/rag/search?q=` | Vetorização e busca (RF02) |
-| `GET /api/auditorias` | Histórico do agente com o perfil que executou (RF06) |
-| `POST /api/reset` | Restaura os dados de demonstração (perfil admin + token em produção) |
+| `POST /api/auth/login` | Autentica um perfil e devolve o token de sessão |
+| `GET /api/auth/demo-users` | Lista os perfis de demonstração |
+| `GET /api/auth/me` · `POST /api/auth/logout` | Perfil da sessão atual / encerramento |
+| `GET /api/health` | Status do banco, do índice vetorial e do LLM |
+| `GET` `POST` `PUT` `DELETE /api/materiais` | CRUD de insumos |
+| `GET` `POST /api/residuos` | Resíduos e destinações |
+| `GET /api/dashboard` | Indicadores ambientais |
+| `POST /api/chat` | Consulta RAG ao agente de IA |
+| `GET` `POST /api/chats` · `GET` `DELETE /api/chats/:id` | Histórico de conversas |
+| `POST /api/estoque/analise` | Relatório executivo do agente |
+| `POST /api/rag/reindex` · `GET /api/rag/search?q=` | Indexação e busca vetorial |
+| `GET /api/auditorias` | Histórico de ações do agente |
+| `POST /api/reset` | Restaura os dados de demonstração (admin + token em produção) |
 
-## Segurança e operação
+## Requisitos atendidos
 
-- **Login demo com sessão assinada**: `POST /api/auth/login` devolve um token HMAC com validade de
-  12 h. A assinatura usa `SESSION_SECRET` (ou `ADMIN_TOKEN` como fallback) e é verificada em tempo
-  constante. O token fica em `localStorage` no navegador.
-- **Defina `SESSION_SECRET` no deploy**: sem ele a API usa o segredo de demonstração que está no
-  código-fonte. Em produção, configure um valor aleatório longo nas variáveis de ambiente.
-- **Permissões por setor**: as rotas de escrita checam permissões declarativas (`materiais:write`,
-  `residuos:write`, `rag:reindex`, `demo:reset`). O frontend esconde ações que o perfil não pode
-  executar, e o backend rejeita com **403** mesmo que alguém chame a API direto.
-- **Conversas isoladas**: cada conversa do Agente IA pertence ao e-mail que a criou. Listar, abrir e
-  excluir só funciona para o dono (o perfil admin pode auditar todas).
-- **Auditoria com identidade**: cada evento grava `usuario`, `usuario_email`, `usuario_setor`,
-  `usuario_role` e `data` — não existe mais o genérico `usuario-web`.
-- **`POST /api/reset` exige perfil admin e, em produção, token**: o perfil sozinho não basta quando
-  `ADMIN_TOKEN` está definido; o header `x-admin-token` é comparado em tempo constante
-  (`timingSafeEqual`). Sem ele a resposta é **403**.
-- **Rate limiting por IP**: 20 requisições de chat, 10 de análise e 20 de login por minuto.
-- **Segredos fora do repositório**: `.env` é ignorado pelo Git e pelo deploy; o repositório traz
-  apenas `.env.example` com placeholders.
-- **Limite desta demo**: as credenciais são públicas e os dados são fictícios. Não use este modelo
-  de autenticação com dados reais de clientes.
+| ID | Requisito | Implementação |
+|----|-----------|---------------|
+| RF01 | Análise de estoque com agente IA | Dashboard → "Analisar com IA" (`POST /api/estoque/analise`) |
+| RF02 | Vetorização e indexação dos dados | `POST /api/rag/reindex`, `GET /api/rag/search` |
+| RF03 | Consultor RAG (chat) | Módulo Agente IA (`POST /api/chat`) |
+| RF04 | Gestão de materiais (CRUD) | Módulo Estoque |
+| RF05 | Dashboard de indicadores | `GET /api/dashboard` |
+| RF06 | Auditoria e rastreabilidade | `GET /api/auditorias` |
+| RNF01 | Integração não invasiva | A API apenas lê o banco legado, sem alterar o modelo original |
+| RNF02 | Resposta em até 3 s | Busca vetorial local (< 50 ms); latência do LLM exibida na interface |
+| RNF03 | API desacoplada da IA | Rotas de dados independem de `groq.js`; chat e análise têm fallback |
+| RNF04 | Interface responsiva | CSS mobile-first |
 
-## Estrutura do código
+## Segurança
+
+- **Sessão assinada:** token HMAC sem estado (compatível com serverless), verificado em tempo
+  constante. Em produção, defina `SESSION_SECRET` com um valor aleatório e longo.
+- **Permissões por setor:** rotas de escrita checam permissões declarativas (`materiais:write`,
+  `residuos:write`, `rag:reindex`, `demo:reset`). O backend responde **403** mesmo se a API for
+  chamada diretamente.
+- **Conversas isoladas:** cada conversa pertence ao perfil que a criou; apenas o administrador pode
+  auditar todas.
+- **Auditoria com identidade:** cada evento registra nome, e-mail, setor, perfil e data.
+- **Reset protegido:** `POST /api/reset` exige perfil administrador e, em produção, o header
+  `x-admin-token`, comparado com `timingSafeEqual`.
+- **Rate limiting por IP:** limites configuráveis para chat, análise e login.
+- **Segredos fora do repositório:** `.env` é ignorado pelo Git e pelo deploy.
+
+## Estrutura do projeto
 
 ```
 A3-MVP/
-├── api/index.js        # entrypoint da serverless function do Vercel
+├── api/index.js           # entrypoint da Serverless Function (Vercel)
 ├── backend/
-│   ├── app.js           # API Express (RF01–RF06) — exporta o app
-│   ├── auth.js          # login demo, sessão HMAC e permissões por setor
-│   ├── server.js        # servidor Node (usado no desenvolvimento)
-│   ├── db.js            # camada de dados: MongoDB (Atlas) ou simulado em arquivo
-│   ├── vectorstore.js   # banco vetorial TF-IDF + cosseno (mimic Qdrant)
-│   └── groq.js          # cliente do agente IA (Groq) + fallback
-├── public/             # SPA estática (Dashboard, Estoque, Resíduos, Agente IA, Auditoria)
+│   ├── app.js             # API Express
+│   ├── auth.js            # login, sessão HMAC e permissões
+│   ├── server.js          # servidor de desenvolvimento
+│   ├── db.js              # camada de dados: MongoDB Atlas ou simulado
+│   ├── vectorstore.js     # índice vetorial TF-IDF + cosseno
+│   └── groq.js            # cliente do agente de IA + fallback
+├── public/                # SPA estática
 ├── data/
-│   ├── seed.json        # dados da empresa (12 materiais, 8 resíduos, políticas…)
-│   └── db.json          # banco simulado local (gerado na 1ª execução, fora do git)
-├── scripts/smoke-test.js  # teste ponta a ponta da API
+│   ├── seed.json          # dados de demonstração
+│   └── db.json            # banco simulado local (gerado na 1ª execução)
+├── scripts/smoke-test.js  # teste ponta a ponta
 ├── vercel.json
 └── package.json
 ```
 
 ## Decisões técnicas
 
-- **Estáticos em `public/`**: a Vercel não executa `express.static()`; arquivos estáticos precisam
-  ficar na pasta `public/` para serem servidos pela CDN.
-- **MongoDB é obrigatório em produção**: o filesystem da função é somente leitura, então a
-  persistência real (materiais, conversas, auditoria) depende do Atlas. O modo simulado em arquivo
-  existe apenas para desenvolvimento e como degradação segura.
-- **Degradação em camadas**: sem Atlas o app continua respondendo com o seed em memória; sem LLM o
-  agente responde pelo fallback. O `GET /api/health` expõe os dois estados (`mongo.degraded`,
-  `llm.available`) para que a interface nunca finja que está tudo saudável.
-- **Cold start do LLM**: o health check do Groq é cacheado (15 s) e o chat **não** faz um
-  pre-flight, para que um handshake lento em instâncias novas não derrube para o fallback uma
-  resposta que funcionaria.
-
-## Stack
-
-| Camada | Tecnologia |
-|---|---|
-| Frontend | HTML, CSS e JavaScript puros (SPA, mobile-first), sem framework |
-| Backend | Node.js 22 · Express · API REST em `/api/*` |
-| Banco | MongoDB Atlas (driver oficial) · modo simulado em arquivo para dev |
-| Vetores | TF-IDF + similaridade de cosseno (mimic do Qdrant) |
-| IA | Groq — modelo `openai/gpt-oss-120b` |
-| Infra | Vercel (serverless functions + CDN) |
+- **Arquivos estáticos em `public/`:** a Vercel serve estáticos pela CDN, sem passar pelo
+  `express.static()`.
+- **MongoDB obrigatório em produção:** o sistema de arquivos da função é somente leitura; o modo
+  simulado existe apenas para desenvolvimento e como degradação segura.
+- **Degradação em camadas:** sem banco, o app responde com o seed em memória; sem LLM, com o
+  fallback. O `GET /api/health` expõe os dois estados (`mongo.degraded`, `llm.available`) para que a
+  interface sempre reflita a situação real.
+- **Cold start do LLM:** o health check do Groq é cacheado por 15 s e o chat não faz verificação
+  prévia, evitando que uma conexão lenta em instâncias novas force o fallback sem necessidade.
