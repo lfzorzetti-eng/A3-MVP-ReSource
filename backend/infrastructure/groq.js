@@ -7,10 +7,7 @@
  *   GROQ_MODEL=...    (opcional)
  */
 
-const GROQ_URL = (process.env.GROQ_URL || 'https://api.groq.com/openai/v1').replace(/\/+$/, '');
-const GROQ_MODEL = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
-const GROQ_API_KEY = (process.env.GROQ_API_KEY || '').trim();
-const HEALTH_TTL_MS = Number(process.env.GROQ_HEALTH_TTL_MS || 15000);
+const { GROQ_URL, GROQ_MODEL, GROQ_API_KEY, GROQ_HEALTH_TTL_MS: HEALTH_TTL_MS } = require('./config');
 
 let available = null; // null = desconhecido, true/false cacheado
 let lastCheck = 0;

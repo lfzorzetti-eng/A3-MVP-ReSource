@@ -1,5 +1,6 @@
 /**
  * Banco vetorial simulado (mimic do Qdrant).
+ * Camada infrastructure: lê as coleções pelo db.js e mantém o índice em memória.
  * Gera embeddings TF-IDF locais dos documentos do MongoDB e indexa
  * em memória com busca por similaridade de cosseno (RAG).
  */
@@ -161,4 +162,4 @@ function stats() {
   return { documents: index.length, vocabulary: vocab.size, collections: byCol };
 }
 
-module.exports = { rebuild, search, stats };
+module.exports = { rebuild, search, stats, tokenize, stem };

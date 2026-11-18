@@ -96,9 +96,23 @@ aplicado apenas em coleções vazias, de forma idempotente.
 consultados por similaridade de cosseno. A interface de indexação e busca segue o modelo do Qdrant,
 mas roda dentro da própria aplicação, sem serviço externo.
 
-**Agente de IA desacoplado.** O módulo `backend/groq.js` é o único que fala com o LLM. Nenhuma rota de
+**Agente de IA desacoplado.** O módulo `backend/infrastructure/groq.js` é o único que fala com o LLM. Nenhuma rota de
 dados depende dele: se a IA estiver indisponível, o CRUD segue funcionando e o agente responde por um
 fallback determinístico, com o status exibido na interface.
+
+### Camadas
+
+Back e front seguem a mesma ideia: camadas com seta única, conferida por teste. Detalhes e contrato
+completo em [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
+```
+back:   routes → controllers → infrastructure   (entities: perfis e prompts)
+front:  main.js → screens → controllers → infrastructure   (components/ui, entities, models)
+```
+
+O front tem dois transportes com o mesmo contrato: **HTTP** (API real) e **mock** (back falso no
+navegador, com os mesmos dados e perfis). Com `?api=mock` na URL, a interface inteira funciona sem
+servidor.
 
 ### Fluxo de uma pergunta ao agente
 
@@ -130,10 +144,13 @@ npm run dev             # http://localhost:3000
 |---|---|
 | `npm run dev` | Servidor local com reinício automático ao salvar |
 | `npm start` | Servidor local sem *watch* |
-| `npm run smoke` | Teste ponta a ponta da API (com o servidor em execução) |
+| `npm test` | Testes unitários (back e front) e regra das camadas |
+| `npm run smoke` | Teste ponta a ponta da API com MongoDB em memória (instale antes `npm i -D mongodb-memory-server --no-save`) |
+| `npm run mock:dados` | Regenera os dados do mock do front a partir de `data/seed.json` |
 
 Sem `MONGODB_URI`, a aplicação usa o banco simulado em `data/db.json`. Sem `GROQ_API_KEY`, o agente
-responde pelo fallback local.
+responde pelo fallback local. Para usar só o front, sem back, abra `http://localhost:3000/?api=mock`
+(volte com `?api=http`).
 
 ### Deploy
 
@@ -171,8 +188,8 @@ permissões de um setor:
 | Auditor | `auditor@econova.com` | `demo123` | Somente leitura: dashboard, relatórios e auditoria |
 | Administrador | `admin@econova.com` | `demo123` | Acesso total e restauração da demo |
 
-> **Atenção:** este modelo de autenticação é apenas para demonstração. Em produção, `backend/auth.js`
-> deve ser substituído por um provedor de identidade (Auth0, Clerk, Cognito etc.), mantendo a
+> **Atenção:** este modelo de autenticação é apenas para demonstração. Em produção, os perfis de `backend/entities/perfis.js`
+> devem ser substituídos por um provedor de identidade (Auth0, Clerk, Cognito etc.), mantendo a
 > interface `req.user` + `permissions`.
 
 ## API
@@ -231,19 +248,29 @@ validam a permissão do perfil.
 
 ```
 A3-MVP/
-├── api/index.js           # entrypoint da Serverless Function (Vercel)
+├── api/index.js                 # entrypoint da Serverless Function (Vercel)
 ├── backend/
-│   ├── app.js             # API Express
-│   ├── auth.js            # login, sessão HMAC e permissões
-│   ├── server.js          # servidor de desenvolvimento
-│   ├── db.js              # camada de dados: MongoDB Atlas ou simulado
-│   ├── vectorstore.js     # índice vetorial TF-IDF + cosseno
-│   └── groq.js            # cliente do agente de IA + fallback
-├── public/                # SPA estática
-├── data/
-│   ├── seed.json          # dados de demonstração
-│   └── db.json            # banco simulado local (gerado na 1ª execução)
-├── scripts/smoke-test.js  # teste ponta a ponta
+│   ├── app.js                   # monta o Express e exporta o app
+│   ├── server.js                # servidor de desenvolvimento
+│   ├── routes/index.js          # URL → guardas → controller
+│   ├── controllers/             # regra por recurso + guardas (sessão, permissão, rate limit)
+│   ├── infrastructure/          # config, db, vetores (TF-IDF), groq, sessão HMAC, auditoria
+│   └── entities/                # perfis demo e prompts do agente
+├── public/
+│   ├── index.html
+│   ├── css/                     # tema.css (tokens) e style.css
+│   └── js/
+│       ├── main.js              # entrada: abas e login × plataforma
+│       ├── screens/             # uma tela por aba
+│       ├── controllers/         # estado e regra das telas
+│       ├── infrastructure/      # transporte http e mock, client, sessão, recursos/
+│       ├── components/ui/       # peças sem regra
+│       ├── entities/            # catálogo e permissões
+│       └── models/              # tipos da API (JSDoc)
+├── data/seed.json               # dados de demonstração
+├── test/                        # testes (back, front e regra das camadas)
+├── scripts/                     # smoke test e gerador do mock
+├── AGENTS.md · ARCHITECTURE.md · LAYOUT.md · docs/VISUAL.md
 ├── vercel.json
 └── package.json
 ```
@@ -257,5 +284,7 @@ A3-MVP/
 - **Degradação em camadas:** sem banco, o app responde com o seed em memória; sem LLM, com o
   fallback. O `GET /api/health` expõe os dois estados (`mongo.degraded`, `llm.available`) para que a
   interface sempre reflita a situação real.
+- **Mock no front:** o mock implementa as mesmas rotas do back e usa os mesmos dados, gerados de
+  `data/seed.json`. Serve para demonstrar sem servidor e para testar o front de forma previsível.
 - **Cold start do LLM:** o health check do Groq é cacheado por 15 s e o chat não faz verificação
   prévia, evitando que uma conexão lenta em instâncias novas force o fallback sem necessidade.

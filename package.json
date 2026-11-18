@@ -10,7 +10,9 @@
   "scripts": {
     "start": "node backend/server.js",
     "dev": "node --watch backend/server.js",
-    "smoke": "node scripts/smoke-test.js"
+    "test": "node --test \"test/**/*.test.{js,mjs}\"",
+    "smoke": "node scripts/smoke-test.js",
+    "mock:dados": "node scripts/gerar-mock.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

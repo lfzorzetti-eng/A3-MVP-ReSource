@@ -1,0 +1,19 @@
+/* Tokens do tema escuro do ReSource. Cores e medidas da interface saem daqui (ver docs/VISUAL.md). */
+:root {
+  color-scheme: dark;
+  --bg: #0b1211;
+  --surface: #121c1b;
+  --surface-2: #0f1918;
+  --ink: #e6efed;
+  --muted: #92a5a2;
+  --line: #22312f;
+  --brand: #14b8a6;
+  --brand-dark: #0b5852;
+  --brand-text: #5eead4;
+  --brand-soft: #0f2e2b;
+  --accent: #22c55e;
+  --warn: #f59e0b;
+  --danger: #ef4444;
+  --radius: 14px;
+  --shadow: 0 8px 24px rgba(0, 0, 0, .35);
+}

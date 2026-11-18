@@ -19,13 +19,11 @@ const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 
-const seed = require('../data/seed.json');
+const seed = require('../../data/seed.json');
+const { MONGO_URI, MONGO_DB, MONGO_RETRIES } = require('./config');
 
-const DATA_DIR = path.join(__dirname, '..', 'data');
+const DATA_DIR = path.join(__dirname, '..', '..', 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
-
-const MONGO_URI = (process.env.MONGODB_URI || '').trim();
-const MONGO_DB = (process.env.MONGODB_DB || 'resource_mvp').trim();
 
 const COLLECTIONS = ['materiais', 'residuos', 'movimentacoes', 'politicas', 'auditorias', 'conversas'];
 const CONFIG_KEYS = ['empresa', 'indicadores'];
@@ -197,7 +195,7 @@ async function init() {
   if (ready) return mode;
   if (MONGO_URI) {
     const { MongoClient } = require('mongodb');
-    const tentativas = Number(process.env.MONGODB_RETRIES || 3);
+    const tentativas = MONGO_RETRIES;
     let ultimoErro = null;
     for (let i = 1; i <= tentativas; i++) {
       try {
