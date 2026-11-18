@@ -29,5 +29,5 @@ Front sem back: abra `/?api=mock`. Volte com `/?api=http`.
 - Mudou `data/seed.json` ou `backend/entities/perfis.js` → `npm run mock:dados`.
 - Código, nomes e textos em português; comentário explica o porquê.
 - Nada de cor ou medida literal no JS/HTML: use classes e os tokens de `public/css/tema.css` (ver `docs/VISUAL.md`).
-- Não mexer sem perguntar: `.env*`, `public/apresentacao.html`, deploy de produção e variáveis da Vercel.
+- Não mexer sem perguntar: `.env*`, deploy de produção e variáveis da Vercel.
 - Antes de dizer que terminou: `npm test` verde. Se mexeu na API, rode também o `npm run smoke`.
