@@ -17,3 +17,6 @@ data/db.json
 npm-debug.log*
 .DS_Store
 .vercel
+
+# Claude Code (config pessoal)
+.claude/settings.local.json

@@ -296,16 +296,16 @@ async function loadStatus() {
     $('#pillMongo').title = `${h.mongo.simulated ? 'MongoDB simulado (arquivo local)' : `MongoDB (${h.mongo.database})`}${h.mongo.degraded ? ' - DEGRADADO: cluster não respondeu, usando banco simulado' : ''}: ${Object.entries(h.mongo).filter(([k]) => !['simulated', 'database', 'degraded'].includes(k)).map(([k, v]) => `${k}:${v}`).join(', ')}`;
     $('#pillVector').className = 'pill on';
     $('#pillVector').title = `Banco vetorial: ${h.vector.documents} docs, ${h.vector.vocabulary} termos`;
-    const st = $('#ollamaStatus');
-    if (h.ollama.available) {
-      $('#pillOllama').className = 'pill on';
-      $('#pillOllama').title = `Ollama: ${h.ollama.model} (${h.ollama.models.join(', ') || 's/ modelos'})`;
-      st.textContent = `Ollama online · ${h.ollama.model}${h.ollama.cloud ? ' (cloud)' : ''}`;
+    const st = $('#llmStatus');
+    if (h.llm.available) {
+      $('#pillLlm').className = 'pill on';
+      $('#pillLlm').title = `Groq: ${h.llm.model}`;
+      st.textContent = `Groq online · ${h.llm.model}`;
       st.classList.add('on');
     } else {
-      $('#pillOllama').className = 'pill off';
-      $('#pillOllama').title = 'Ollama indisponível — respostas via fallback local';
-      st.textContent = 'Ollama offline — usando fallback local';
+      $('#pillLlm').className = 'pill off';
+      $('#pillLlm').title = 'Groq indisponível — respostas via fallback local';
+      st.textContent = 'Groq offline — usando fallback local';
       st.classList.remove('on');
     }
     const idx = $('#badgeIndex');
@@ -314,7 +314,7 @@ async function loadStatus() {
   } catch (e) {
     $('#pillMongo').className = 'pill off';
     $('#pillVector').className = 'pill off';
-    $('#pillOllama').className = 'pill off';
+    $('#pillLlm').className = 'pill off';
   }
 }
 
@@ -361,7 +361,7 @@ $('#btnAnalise').addEventListener('click', async () => {
     const r = await api('/estoque/analise', { method: 'POST' });
     const report = $('#analiseReport');
     report.innerHTML = renderMd(r.report) +
-      `<div class="meta-line">Fonte: <strong>${r.source === 'ollama' ? 'Ollama (' + esc(r.model) + ')' : 'fallback local'}</strong> · ${r.latency_ms} ms · ${r.resumo.materiais} materiais · ${r.resumo.risco_alto} risco alto · ${r.resumo.residuos_perigosos} resíduos perigosos</div>`;
+      `<div class="meta-line">Fonte: <strong>${r.source === 'groq' ? 'Groq (' + esc(r.model) + ')' : 'fallback local'}</strong> · ${r.latency_ms} ms · ${r.resumo.materiais} materiais · ${r.resumo.risco_alto} risco alto · ${r.resumo.residuos_perigosos} resíduos perigosos</div>`;
     report.classList.remove('hidden');
     loadStatus();
   } catch (e) {
@@ -518,7 +518,7 @@ function addMsg(role, html, meta) {
 
 function metaHtml(meta) {
   const sources = (meta.sources || []).map((s) => `<span class="src-chip">${esc(s.collection)} · ${Number(s.score).toFixed(2)} ${esc(s.label || '')}</span>`).join('');
-  const fonte = meta.source === 'ollama' ? 'Ollama · ' + esc(meta.model || '') : 'fallback local (Ollama offline)';
+  const fonte = meta.source === 'groq' ? 'Groq · ' + esc(meta.model || '') : 'fallback local (Groq offline)';
   return (sources ? `<div class="sources">${sources}</div>` : '') + `<div class="latency">${fonte} · ${meta.latency_ms ?? '—'} ms</div>`;
 }
 

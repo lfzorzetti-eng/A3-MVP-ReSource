@@ -19,7 +19,7 @@ const crypto = require('crypto');
 
 const db = require('./db');
 const vectorstore = require('./vectorstore');
-const ollama = require('./ollama');
+const groq = require('./groq');
 const auth = require('./auth');
 
 const app = express();
@@ -56,7 +56,7 @@ app.use(async (req, res, next) => {
 /** Express 4 não captura rejeições de handlers async - este wrapper evita request pendurado. */
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 
-/** Limitador simples por IP (protege a cota do Ollama Cloud em deploy público). */
+/** Limitador simples por IP (protege a cota do Groq em deploy público). */
 const rateLimit = (maxPorMinuto) => {
   const hits = new Map();
   return (req, res, next) => {
@@ -105,8 +105,8 @@ async function audit(evento, detalhe, usuario = null) {
 
 // ---------- health / status ----------
 app.get('/api/health', wrap(async (req, res) => {
-  const ollamaUp = await ollama.checkHealth();
-  const models = ollamaUp ? await ollama.listModels() : [];
+  const groqUp = await groq.checkHealth();
+  const models = groqUp ? await groq.listModels() : [];
   res.json({
     ok: true,
     mongo: {
@@ -116,11 +116,11 @@ app.get('/api/health', wrap(async (req, res) => {
       ...(await db.stats()),
     },
     vector: vectorstore.stats(),
-    ollama: {
-      url: ollama.OLLAMA_URL,
-      model: ollama.OLLAMA_MODEL,
-      available: ollamaUp,
-      cloud: ollama.isCloud(),
+    llm: {
+      provider: 'groq',
+      url: groq.GROQ_URL,
+      model: groq.GROQ_MODEL,
+      available: groqUp,
       models,
     },
     auth: {
@@ -166,8 +166,8 @@ app.post('/api/auth/logout', auth.requireAuth, wrap(async (req, res) => {
 const loginRequired = auth.requireAuth;
 const allow = auth.requirePermission;
 
-app.post('/api/ollama/reconnect', loginRequired, allow('admin:ops'), (req, res) => {
-  ollama.invalidateCache();
+app.post('/api/llm/reconnect', loginRequired, allow('admin:ops'), (req, res) => {
+  groq.invalidateCache();
   res.json({ ok: true });
 });
 
@@ -357,7 +357,7 @@ app.delete('/api/chats/:id', loginRequired, wrap(async (req, res) => {
   res.json({ ok: true });
 }));
 
-// ---------- RF03: chat RAG com Ollama ----------
+// ---------- RF03: chat RAG com Groq ----------
 async function buildContext(question) {
   const hits = await vectorstore.search(question, 6);
   if (!hits.length) return { context: '', hits: [] };
@@ -409,7 +409,7 @@ Regras para usar o contexto:
   ];
 
   const t0 = Date.now();
-  const result = await ollama.chat(messages, { temperature: 0.4 });
+  const result = await groq.chat(messages, { temperature: 0.4 });
   const latencyMs = Date.now() - t0;
 
   await audit('Consulta RAG', `"${message.slice(0, 80)}" (${hits.length} docs, ${result.source}, ${latencyMs}ms)`, req.user);
@@ -483,7 +483,7 @@ Seja específico, use os números fornecidos, não invente dados. Máximo 300 pa
   ];
 
   const t0 = Date.now();
-  const result = await ollama.chat(messages, { temperature: 0.3, timeoutMs: 60000 });
+  const result = await groq.chat(messages, { temperature: 0.3, timeoutMs: 60000 });
   const latencyMs = Date.now() - t0;
 
   await audit('Análise de estoque', `Agente analisou ${materiais.length} materiais (${result.source}, ${latencyMs}ms)`, req.user);

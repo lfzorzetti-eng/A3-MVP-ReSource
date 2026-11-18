@@ -91,7 +91,7 @@
       <div class="status-pills">
         <span class="pill" id="pillMongo" title="Banco legado">MongoDB</span>
         <span class="pill" id="pillVector" title="Banco vetorial (RAG)">Vetorial</span>
-        <span class="pill" id="pillOllama" title="Agente de IA">Ollama</span>
+        <span class="pill" id="pillLlm" title="Agente de IA">Groq</span>
       </div>
       <span class="readonly-chip hidden" id="readonlyChip" title="Seu perfil não altera dados">somente leitura</span>
       <div class="user-menu" id="userMenu">
@@ -247,9 +247,9 @@
       <div class="view-head">
         <div>
           <h1>Consultor RAG</h1>
-          <p class="sub">RF03 — chat com LLM (Ollama) + recuperação semântica sobre os dados internos.</p>
+          <p class="sub">RF03 — chat com LLM (Groq) + recuperação semântica sobre os dados internos.</p>
         </div>
-        <div class="ollama-status" id="ollamaStatus">verificando…</div>
+        <div class="llm-status" id="llmStatus">verificando…</div>
       </div>
 
       <div class="chat-layout">
@@ -306,7 +306,7 @@
 
   <footer class="footer">
     <span>A3 · Lucas Zorzetti · Levi Laghetto · Isabela Munhoz</span>
-    <span>Plataforma ReSource — MVP (MongoDB Atlas + Ollama)</span>
+    <span>Plataforma ReSource — MVP (MongoDB Atlas + Groq)</span>
   </footer>
 
   <script src="js/app.js"></script>

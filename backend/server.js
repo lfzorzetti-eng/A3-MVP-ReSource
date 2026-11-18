@@ -6,14 +6,14 @@
 
 const { app, ready, PORT } = require('./app');
 const db = require('./db');
-const ollama = require('./ollama');
+const groq = require('./groq');
 
 ready
   .then(() => {
     app.listen(PORT, () => {
       console.log(`[ReSource] API em http://localhost:${PORT}`);
       console.log(`[ReSource] Banco: ${db.isMongo() ? `MongoDB (${db.MONGO_DB})` : 'simulado em data/db.json'}`);
-      console.log(`[ReSource] Ollama: ${ollama.OLLAMA_URL} | modelo: ${ollama.OLLAMA_MODEL}${ollama.isCloud() ? ' (cloud)' : ''}`);
+      console.log(`[ReSource] Groq: ${groq.GROQ_URL} | modelo: ${groq.GROQ_MODEL}${groq.GROQ_API_KEY ? '' : ' (sem GROQ_API_KEY: usando fallback)'}`);
     });
   })
   .catch((e) => {

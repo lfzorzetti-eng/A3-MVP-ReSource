@@ -69,7 +69,7 @@ navegador ──► CDN da Vercel ──► /            (SPA estática em publi
                                           │
                                           ├──► MongoDB Atlas   (materiais, resíduos, políticas,
                                           │                     conversas, auditoria)
-                                          └──► Ollama Cloud    (chat RAG e análise de estoque)
+                                          └──► Groq            (chat RAG e análise de estoque)
 ```
 
 Três peças trabalham juntas:
@@ -87,12 +87,12 @@ Cada material, resíduo e política vira um documento vetorizado por **TF-IDF** 
 similaridade de **cosseno** na busca. É um mimic deliberado do Qdrant: a mesma interface de
 indexação/rebusca, sem depender de um serviço extra — o que mantém o MVP auto-contido.
 
-**3. Ollama como agente de IA.**
-O `backend/ollama.js` fala com a API do Ollama (mesmo protocolo para a instalação local e para o
-**Ollama Cloud**), usando `Authorization: Bearer` na cloud. O modelo em produção é o
-**`gemma4:31b-cloud`**. O app é desacoplado da IA: se o LLM estiver indisponível, as respostas de
-dados continuam funcionando e o agente responde por um fallback determinístico, com o status
-exibido na interface (`GET /api/health` reporta `ollama.available`).
+**3. Groq como agente de IA.**
+O `backend/groq.js` fala com a API do Groq (compatível com OpenAI), usando `Authorization: Bearer`
+com a `GROQ_API_KEY`. O modelo padrão é o **`openai/gpt-oss-120b`** (troque com `GROQ_MODEL`).
+O app é desacoplado da IA: se o LLM estiver indisponível, as respostas de dados continuam
+funcionando e o agente responde por um fallback determinístico, com o status exibido na interface
+(`GET /api/health` reporta `llm.available`).
 
 O `backend/app.js` é a **API desacoplada da IA** (RF03): nenhuma rota de CRUD depende do módulo
 de LLM para entregar dados.
@@ -106,7 +106,7 @@ de LLM para entregar dados.
         ├─► busca de similaridade no índice (cosseno)
         ├─► contexto recuperado: materiais, resíduos e políticas mais relevantes
         ├─► prompt montado com o contexto + histórico da conversa
-        ├─► Ollama Cloud (gemma4:31b-cloud) gera a resposta
+        ├─► Groq (openai/gpt-oss-120b) gera a resposta
         └─► resposta + fontes + auditoria persistidas no Atlas
 ```
 
@@ -122,7 +122,7 @@ de LLM para entregar dados.
 | RF06 | Auditoria / rastreabilidade | Aba "Auditoria" (`GET /api/auditorias`) |
 | RNF01 | Integração não invasiva | A API apenas lê/simula o banco legado, não altera o modelo original |
 | RNF02 | Resposta em até 3s | Busca vetorial é local (<50 ms); latência do LLM exibida na UI |
-| RNF03 | API Node.js desacoplada da IA | `app.js` não depende de `ollama.js` para dados; chat/análise degradam com fallback |
+| RNF03 | API Node.js desacoplada da IA | `app.js` não depende de `groq.js` para dados; chat/análise degradam com fallback |
 | RNF04 | Interface responsiva | CSS mobile-first |
 
 ## API
@@ -136,11 +136,11 @@ de LLM para entregar dados.
 | `POST /api/auth/login` | Autentica um perfil demo e devolve o token de sessão |
 | `GET /api/auth/demo-users` | Perfis fictícios disponíveis (inclui a senha de demonstração) |
 | `GET /api/auth/me` \| `POST /api/auth/logout` | Perfil da sessão atual / encerramento |
-| `GET /api/health` | Status do banco (real ou simulado), do índice vetorial e do Ollama |
+| `GET /api/health` | Status do banco (real ou simulado), do índice vetorial e do Groq |
 | `GET\|POST\|PUT\|DELETE /api/materiais` | CRUD de insumos (RF04) |
 | `GET\|POST /api/residuos` | Resíduos e destinos |
 | `GET /api/dashboard` | Indicadores ambientais (RF05) |
-| `POST /api/chat` | Consultor RAG (RF03): recupera contexto por similaridade → envia ao Ollama → persiste a conversa |
+| `POST /api/chat` | Consultor RAG (RF03): recupera contexto por similaridade → envia ao Groq → persiste a conversa |
 | `GET\|POST /api/chats`, `GET\|DELETE /api/chats/:id` | Histórico de conversas do Agente IA |
 | `POST /api/estoque/analise` | Relatório executivo do agente (RF01) |
 | `POST /api/rag/reindex`, `GET /api/rag/search?q=` | Vetorização e busca (RF02) |
@@ -181,7 +181,7 @@ A3-MVP/
 │   ├── server.js        # servidor Node (usado no desenvolvimento)
 │   ├── db.js            # camada de dados: MongoDB (Atlas) ou simulado em arquivo
 │   ├── vectorstore.js   # banco vetorial TF-IDF + cosseno (mimic Qdrant)
-│   └── ollama.js        # cliente do agente IA (local ou cloud) + fallback
+│   └── groq.js          # cliente do agente IA (Groq) + fallback
 ├── public/             # SPA estática (Dashboard, Estoque, Resíduos, Agente IA, Auditoria)
 ├── data/
 │   ├── seed.json        # dados da empresa (12 materiais, 8 resíduos, políticas…)
@@ -200,10 +200,10 @@ A3-MVP/
   existe apenas para desenvolvimento e como degradação segura.
 - **Degradação em camadas**: sem Atlas o app continua respondendo com o seed em memória; sem LLM o
   agente responde pelo fallback. O `GET /api/health` expõe os dois estados (`mongo.degraded`,
-  `ollama.available`) para que a interface nunca finja que está tudo saudável.
-- **Cold start do Ollama**: o health check do LLM é cacheado (15 s) e o chat **não** faz um
-  pre-flight, porque o handshake TLS do `ollama.com` pode estourar o timeout em instâncias novas e
-  degradar uma resposta que funcionaria.
+  `llm.available`) para que a interface nunca finja que está tudo saudável.
+- **Cold start do LLM**: o health check do Groq é cacheado (15 s) e o chat **não** faz um
+  pre-flight, para que um handshake lento em instâncias novas não derrube para o fallback uma
+  resposta que funcionaria.
 
 ## Stack
 
@@ -213,5 +213,5 @@ A3-MVP/
 | Backend | Node.js 22 · Express · API REST em `/api/*` |
 | Banco | MongoDB Atlas (driver oficial) · modo simulado em arquivo para dev |
 | Vetores | TF-IDF + similaridade de cosseno (mimic do Qdrant) |
-| IA | Ollama Cloud — modelo `gemma4:31b-cloud` |
+| IA | Groq — modelo `openai/gpt-oss-120b` |
 | Infra | Vercel (serverless functions + CDN) |
