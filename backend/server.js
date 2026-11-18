@@ -5,8 +5,8 @@
  */
 
 const { app, ready, PORT } = require('./app');
-const db = require('./db');
-const groq = require('./groq');
+const db = require('./infrastructure/db');
+const groq = require('./infrastructure/groq');
 
 ready
   .then(() => {
@@ -14,6 +14,7 @@ ready
       console.log(`[ReSource] API em http://localhost:${PORT}`);
       console.log(`[ReSource] Banco: ${db.isMongo() ? `MongoDB (${db.MONGO_DB})` : 'simulado em data/db.json'}`);
       console.log(`[ReSource] Groq: ${groq.GROQ_URL} | modelo: ${groq.GROQ_MODEL}${groq.GROQ_API_KEY ? '' : ' (sem GROQ_API_KEY: usando fallback)'}`);
+      console.log(`[ReSource] Front sem back: http://localhost:${PORT}/?api=mock`);
     });
   })
   .catch((e) => {

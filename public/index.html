@@ -8,6 +8,7 @@
   <title>ReSource — Gestão Zero Waste com IA</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tema.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="auth-checking">
@@ -72,7 +73,7 @@
           <p class="empty">Carregando perfis de demonstração…</p>
         </div>
 
-        <p class="login-note" style="margin-top:14px">
+        <p class="login-note login-note-gap">
           Sessão de demonstração · expira em <strong id="sessionTtl">12 h</strong>.
         </p>
       </div>
@@ -94,6 +95,7 @@
         <span class="pill" id="pillLlm" title="Agente de IA">Groq</span>
       </div>
       <span class="readonly-chip hidden" id="readonlyChip" title="Seu perfil não altera dados">somente leitura</span>
+      <span class="readonly-chip hidden" id="mockChip" title="Dados falsos no navegador; volte com ?api=http">modo mock</span>
       <div class="user-menu" id="userMenu">
         <div class="user-avatar" id="userAvatar">--</div>
         <div class="user-info">
@@ -187,10 +189,7 @@
           <input type="hidden" name="_id">
           <label>Nome *<input name="nome" required></label>
           <label>Categoria *
-            <select name="categoria" required>
-              <option>Plástico</option><option>Papel</option><option>Metal</option>
-              <option>Químico</option><option>Orgânico</option><option>Vidro</option>
-            </select>
+            <select name="categoria" required data-opcoes="categorias"></select>
           </label>
           <label>Unidade<input name="unidade" value="kg"></label>
           <label>Saldo<input name="saldo" type="number" step="any" value="0"></label>
@@ -198,7 +197,7 @@
           <label>Fornecedor<input name="fornecedor"></label>
           <label>Localização<input name="localizacao"></label>
           <label>Risco
-            <select name="risco"><option>Baixo</option><option>Médio</option><option>Alto</option></select>
+            <select name="risco" data-opcoes="riscos"></select>
           </label>
           <label class="span2">Descrição<textarea name="descricao" rows="2"></textarea></label>
           <div class="span2 actions">
@@ -226,11 +225,11 @@
         <form id="formRes" class="form-grid">
           <label>Nome *<input name="nome" required></label>
           <label>Categoria
-            <select name="categoria"><option>Plástico</option><option>Papel</option><option>Metal</option><option>Químico</option><option>Orgânico</option><option>Vidro</option></select>
+            <select name="categoria" data-opcoes="categorias"></select>
           </label>
           <label>Quantidade (kg)<input name="quantidade_kg" type="number" step="any" value="0"></label>
           <label>Classe
-            <select name="classe"><option>Não perigoso</option><option>Perigoso - classe I</option></select>
+            <select name="classe" data-opcoes="classes"></select>
           </label>
           <label>Destino atual<input name="destino_atual"></label>
           <label>Parceiro<input name="fornecedor_destino"></label>
@@ -298,7 +297,7 @@
           <tbody></tbody>
         </table>
       </div>
-      <div class="actions" style="margin-top:16px">
+      <div class="actions actions-gap">
         <button class="btn ghost" id="btnReset">Restaurar dados de demonstração</button>
       </div>
     </section>
@@ -309,6 +308,6 @@
     <span>Plataforma ReSource — MVP (MongoDB Atlas + Groq)</span>
   </footer>
 
-  <script src="js/app.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

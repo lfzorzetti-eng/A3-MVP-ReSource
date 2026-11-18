@@ -192,7 +192,7 @@ async function main() {
 
   server.close();
   await mongod.stop();
-  await require('../backend/db').close();
+  await require('../backend/infrastructure/db').close();
   console.log(`\n[smoke] PASSOU - ${reqs} requisições verificadas`);
   process.exit(0);
 }
