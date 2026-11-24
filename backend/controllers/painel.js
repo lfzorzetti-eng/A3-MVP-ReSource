@@ -44,6 +44,25 @@ async function listarAuditorias(req, res) {
   res.json(rows);
 }
 
+/**
+ * Ids da exclusão, sem repetição; null se a lista for inválida. Só strings:
+ * um objeto aqui viraria operador do Mongo. Pura, para teste.
+ */
+function idsParaExcluir(ids) {
+  if (!Array.isArray(ids) || !ids.length || ids.length > LIMITE_AUDITORIA) return null;
+  if (!ids.every((id) => typeof id === 'string' && id.trim())) return null;
+  return [...new Set(ids)];
+}
+
+async function excluirAuditorias(req, res) {
+  const ids = idsParaExcluir(req.body?.ids);
+  if (!ids) return res.status(400).json({ error: `informe de 1 a ${LIMITE_AUDITORIA} registros para excluir` });
+  const excluidos = await db.collection('auditorias').deleteMany({ _id: { $in: ids } });
+  if (!excluidos) return res.status(404).json({ error: 'registros não encontrados' });
+  await auditoria.registrar('Exclusão de auditoria', `${excluidos} registro(s) excluído(s)`, req.user);
+  res.json({ ok: true, excluidos });
+}
+
 async function analisarEstoque(req, res) {
   const materiais = await db.collection('materiais').all();
   const residuos = await db.collection('residuos').all();
@@ -81,4 +100,4 @@ ALERTAS: ${criticos.length} materiais de risco alto (${criticos.map((m) => m.nom
   });
 }
 
-module.exports = { resumirPainel, dashboard, listarAuditorias, analisarEstoque };
+module.exports = { resumirPainel, dashboard, listarAuditorias, idsParaExcluir, excluirAuditorias, analisarEstoque };

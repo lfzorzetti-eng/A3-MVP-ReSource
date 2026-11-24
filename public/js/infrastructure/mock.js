@@ -223,6 +223,20 @@ rota('POST', '/residuos', ({ json, u }) => {
 
 rota('GET', '/auditorias', () => carregar().auditorias.slice().reverse().slice(0, LIMITE_AUDITORIA));
 
+rota('POST', '/auditorias/excluir', ({ json, u }) => {
+  const ids = json?.ids;
+  if (!Array.isArray(ids) || !ids.length || ids.length > LIMITE_AUDITORIA || !ids.every((id) => typeof id === 'string' && id.trim())) {
+    throw erroApi(`informe de 1 a ${LIMITE_AUDITORIA} registros para excluir`, { status: 400 });
+  }
+  const b = carregar();
+  const restantes = b.auditorias.filter((a) => !ids.includes(a._id));
+  const excluidos = b.auditorias.length - restantes.length;
+  if (!excluidos) throw erroApi('registros não encontrados', { status: 404 });
+  b.auditorias = restantes;
+  auditar('Exclusão de auditoria', `${excluidos} registro(s) excluído(s)`, u);
+  return { ok: true, excluidos };
+}, { permissao: 'auditoria:delete' });
+
 rota('POST', '/rag/reindex', ({ u }) => {
   const b = carregar();
   const documents = b.materiais.length + b.residuos.length + b.politicas.length;

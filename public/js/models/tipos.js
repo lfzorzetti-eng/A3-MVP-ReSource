@@ -57,6 +57,7 @@
 
 /**
  * @typedef {object} Auditoria
+ * @property {string} _id
  * @property {string} evento
  * @property {string} detalhe
  * @property {string} data          ISO

@@ -34,4 +34,4 @@ Valores tirados de `public/css/style.css`. Mudou o CSS, muda aqui.
 | Estoque | cabeçalho · filtros (busca, categoria, reindexar) · tabela de materiais · formulário (oculto) |
 | Resíduos | cabeçalho · cartões de resíduo · formulário (oculto) |
 | Agente IA | cabeçalho com status do LLM · lista de conversas · mensagens · sugestões · campo de envio |
-| Auditoria | cabeçalho · tabela de eventos · botão de restaurar a demo (só admin) |
+| Auditoria | cabeçalho com excluir selecionados (só admin) · tabela de eventos com seleção (só admin) · botão de restaurar a demo (só admin) |

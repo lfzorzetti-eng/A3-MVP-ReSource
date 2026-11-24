@@ -174,6 +174,26 @@ async function main() {
   assert.ok(r.body.length > 0);
   console.log('  ok  auditoria');
 
+  // ---- exclusão de registros da auditoria ----
+  const [alvo, vizinho] = r.body;
+  const admin = { 'x-admin-token': ADMIN_TOKEN };
+  r = await call('POST', '/api/auditorias/excluir', { ids: [alvo._id] }, { ...admin, Authorization: `Bearer ${auditorToken}` });
+  assert.strictEqual(r.status, 403, 'auditor não deveria excluir auditoria');
+  r = await call('POST', '/api/auditorias/excluir', { ids: [alvo._id] });
+  assert.strictEqual(r.status, 403, 'exclusão sem token deveria ser bloqueada');
+  r = await call('POST', '/api/auditorias/excluir', { ids: [{ $ne: null }] }, admin);
+  assert.strictEqual(r.status, 400, 'id que não é texto deveria dar 400');
+  r = await call('POST', '/api/auditorias/excluir', { ids: [alvo._id] }, admin);
+  assert.strictEqual(r.status, 200);
+  assert.strictEqual(r.body.excluidos, 1);
+  r = await call('GET', '/api/auditorias');
+  assert.ok(!r.body.some((a) => a._id === alvo._id), 'registro não foi excluído');
+  assert.ok(r.body.some((a) => a._id === vizinho._id), 'excluiu registro que não foi escolhido');
+  assert.strictEqual(r.body[0].evento, 'Exclusão de auditoria');
+  r = await call('POST', '/api/auditorias/excluir', { ids: [alvo._id] }, admin);
+  assert.strictEqual(r.status, 404);
+  console.log('  ok  exclusão de auditoria (só os escolhidos, admin + token)');
+
   // ---- delete ----
   r = await call('DELETE', `/api/materiais/${id}`);
   assert.strictEqual(r.status, 200);

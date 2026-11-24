@@ -212,6 +212,7 @@ validam a permissão do perfil.
 | `POST /api/estoque/analise` | Relatório executivo do agente |
 | `POST /api/rag/reindex` · `GET /api/rag/search?q=` | Indexação e busca vetorial |
 | `GET /api/auditorias` | Histórico de ações do agente |
+| `POST /api/auditorias/excluir` | Exclui os registros escolhidos (admin + token em produção) |
 | `POST /api/reset` | Restaura os dados de demonstração (admin + token em produção) |
 
 ## Requisitos atendidos
@@ -234,13 +235,13 @@ validam a permissão do perfil.
 - **Sessão assinada:** token HMAC sem estado (compatível com serverless), verificado em tempo
   constante. Em produção, defina `SESSION_SECRET` com um valor aleatório e longo.
 - **Permissões por setor:** rotas de escrita checam permissões declarativas (`materiais:write`,
-  `residuos:write`, `rag:reindex`, `demo:reset`). O backend responde **403** mesmo se a API for
+  `residuos:write`, `rag:reindex`, `auditoria:delete`, `demo:reset`). O backend responde **403** mesmo se a API for
   chamada diretamente.
 - **Conversas isoladas:** cada conversa pertence ao perfil que a criou; apenas o administrador pode
   auditar todas.
 - **Auditoria com identidade:** cada evento registra nome, e-mail, setor, perfil e data.
-- **Reset protegido:** `POST /api/reset` exige perfil administrador e, em produção, o header
-  `x-admin-token`, comparado com `timingSafeEqual`.
+- **Reset e exclusão de auditoria protegidos:** exigem perfil administrador e, em produção, o
+  header `x-admin-token`, comparado com `timingSafeEqual`.
 - **Rate limiting por IP:** limites configuráveis para chat, análise e login.
 - **Segredos fora do repositório:** `.env` é ignorado pelo Git e pelo deploy.
 

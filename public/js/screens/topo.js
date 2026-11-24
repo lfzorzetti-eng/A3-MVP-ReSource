@@ -55,6 +55,8 @@ export function aplicarUsuario() {
   mostrar($('#btnReindex'), pode('rag:reindex'));
   mostrar($('#btnNovoResiduo'), pode('residuos:write'));
   mostrar($('#btnReset'), pode('demo:reset'));
+  mostrar($('#btnExcluirAudit'), pode('auditoria:delete'));
+  mostrar($('#colAuditTodos'), pode('auditoria:delete'));
 
   if (!pode('materiais:write')) mostrar($('#formMaterial'), false);
   if (!pode('residuos:write')) mostrar($('#formResiduo'), false);

@@ -9,7 +9,7 @@ const perfis = require('../../backend/entities/perfis');
 const sessao = require('../../backend/infrastructure/sessao');
 const { stem, tokenize } = require('../../backend/infrastructure/vetores');
 const agente = require('../../backend/controllers/agente');
-const { resumirPainel } = require('../../backend/controllers/painel');
+const { resumirPainel, idsParaExcluir } = require('../../backend/controllers/painel');
 const { filtrarMateriais } = require('../../backend/controllers/estoque');
 
 test('perfis: cinco usuários, sem senha no usuário público', () => {
@@ -87,6 +87,13 @@ test('painel: totais e resíduos por categoria', () => {
   assert.strictEqual(r.totais.materiais_risco_alto, 1);
   assert.strictEqual(r.totais.residuos_perigosos, 1);
   assert.deepStrictEqual(r.residuos_por_categoria, { Metal: 15 });
+});
+
+test('painel: exclusão de auditoria só aceita lista de ids em texto', () => {
+  assert.deepStrictEqual(idsParaExcluir(['a', 'b', 'a']), ['a', 'b']);
+  for (const ruim of [undefined, 'a', [], [''], [{ $ne: null }], Array(51).fill('a')]) {
+    assert.strictEqual(idsParaExcluir(ruim), null);
+  }
 });
 
 test('estoque: filtro por categoria e busca livre', () => {

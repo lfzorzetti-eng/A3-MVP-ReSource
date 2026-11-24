@@ -5,7 +5,7 @@
 
 const sessao = require('../infrastructure/sessao');
 const { can } = require('../entities/perfis');
-const { RATE_LIMIT_ATIVO } = require('../infrastructure/config');
+const { ADMIN_TOKEN, RATE_LIMIT_ATIVO } = require('../infrastructure/config');
 
 /** Express 4 não captura rejeições de handlers async; sem isto a request fica pendurada. */
 const wrap = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
@@ -39,6 +39,18 @@ function requirePermission(permission) {
   };
 }
 
+/**
+ * Em produção (ADMIN_TOKEN definido) o token continua obrigatório mesmo para o
+ * perfil admin: a senha da demo é pública e, sem ele, qualquer visitante apagaria os dados.
+ */
+function requireAdminToken(req, res, next) {
+  const informado = req.get('x-admin-token') || (req.body && req.body.token) || '';
+  if (ADMIN_TOKEN && !sessao.adminTokenValido(informado)) {
+    return res.status(403).json({ error: 'token de administrador inválido - informe o header x-admin-token' });
+  }
+  return next();
+}
+
 const JANELA_MS = 60000;
 
 /** Limitador simples por IP (protege a cota do Groq em deploy público). */
@@ -59,4 +71,4 @@ function rateLimit(maxPorMinuto) {
   };
 }
 
-module.exports = { wrap, requireAuth, requirePermission, rateLimit };
+module.exports = { wrap, requireAuth, requirePermission, requireAdminToken, rateLimit };

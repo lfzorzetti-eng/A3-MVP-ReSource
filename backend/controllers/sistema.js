@@ -42,12 +42,6 @@ function reconectarLlm(req, res) {
 }
 
 async function reset(req, res) {
-  const informado = req.get('x-admin-token') || (req.body && req.body.token) || '';
-  // Em produção (ADMIN_TOKEN definido) o token continua obrigatório mesmo
-  // para o perfil admin; sem ele a demo não pode ser apagada por visitantes.
-  if (ADMIN_TOKEN && !sessao.adminTokenValido(informado)) {
-    return res.status(403).json({ error: 'token de administrador inválido - informe o header x-admin-token' });
-  }
   await db.reset();
   const info = await vetores.rebuild();
   await auditoria.registrar('Restauração de dados', 'Dados de demonstração restaurados', req.user);

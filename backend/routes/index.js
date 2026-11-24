@@ -4,7 +4,7 @@
  */
 
 const express = require('express');
-const { wrap, requireAuth: login, requirePermission: allow, rateLimit } = require('../controllers/guardas');
+const { wrap, requireAuth: login, requirePermission: allow, requireAdminToken: tokenAdmin, rateLimit } = require('../controllers/guardas');
 const { RATE_LIMIT_CHAT, RATE_LIMIT_ANALISE, RATE_LIMIT_LOGIN } = require('../infrastructure/config');
 const sistema = require('../controllers/sistema');
 const auth = require('../controllers/auth');
@@ -17,7 +17,7 @@ const r = express.Router();
 // sistema
 r.get('/health', wrap(sistema.health));
 r.post('/llm/reconnect', login, allow('admin:ops'), sistema.reconectarLlm);
-r.post('/reset', login, allow('demo:reset'), wrap(sistema.reset));
+r.post('/reset', login, allow('demo:reset'), tokenAdmin, wrap(sistema.reset));
 
 // autenticação (demo)
 r.get('/auth/demo-users', auth.perfisDemo);
@@ -42,6 +42,7 @@ r.get('/movimentacoes', login, wrap(estoque.listarMovimentacoes));
 // dashboard (RF05), auditoria (RF06), análise com IA (RF01)
 r.get('/dashboard', login, wrap(painel.dashboard));
 r.get('/auditorias', login, wrap(painel.listarAuditorias));
+r.post('/auditorias/excluir', login, allow('auditoria:delete'), tokenAdmin, wrap(painel.excluirAuditorias));
 r.post('/estoque/analise', login, allow('analise:run'), rateLimit(RATE_LIMIT_ANALISE), wrap(painel.analisarEstoque));
 
 // busca vetorial (RF02), conversas e chat RAG (RF03)

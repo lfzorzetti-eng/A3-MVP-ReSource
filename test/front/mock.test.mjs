@@ -70,6 +70,24 @@ test('reset volta ao seed', async () => {
   assert.strictEqual((await enviar('GET', '/residuos', undefined, t)).length, 8);
 });
 
+test('auditoria: admin exclui só os registros escolhidos e a exclusão fica registrada', async () => {
+  const t = await entrar('admin@econova.com');
+  await enviar('POST', '/auditorias/excluir', { ids: ['a001'] }, t);
+  const rows = await enviar('GET', '/auditorias', undefined, t);
+  assert.ok(!rows.some((a) => a._id === 'a001'));
+  assert.ok(rows.some((a) => a._id === 'a002'));
+  assert.strictEqual(rows[0].evento, 'Exclusão de auditoria');
+  await assert.rejects(enviar('POST', '/auditorias/excluir', { ids: ['a001'] }, t), (e) => e.status === 404);
+  await assert.rejects(enviar('POST', '/auditorias/excluir', { ids: [] }, t), (e) => e.status === 400);
+});
+
+test('auditoria: só o admin exclui (403 para os demais)', async () => {
+  for (const email of ['gestor@econova.com', 'auditor@econova.com', 'estoque@econova.com', 'residuos@econova.com']) {
+    const t = await entrar(email);
+    await assert.rejects(enviar('POST', '/auditorias/excluir', { ids: ['a001'] }, t), (e) => e.status === 403);
+  }
+});
+
 test('rota inexistente: 404', async () => {
   await assert.rejects(enviar('GET', '/nada'), (e) => e.status === 404);
 });

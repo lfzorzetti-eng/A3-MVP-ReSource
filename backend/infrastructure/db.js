@@ -2,7 +2,7 @@
  * Camada de dados do ReSource MVP.
  *
  * Dois modos, mesma interface assíncrona (find/findOne/insertOne/updateOne/
- * deleteOne/count/all):
+ * deleteOne/deleteMany/count/all):
  *
  *  - MONGO (padrão em produção): usa o driver oficial `mongodb` apontando para
  *    o MongoDB Atlas (ou qualquer MongoDB via MONGODB_URI). O seed.json é
@@ -131,6 +131,12 @@ function memCollection(name) {
       memPersist();
       return true;
     },
+    deleteMany: async (filter) => {
+      const antes = d[name].length;
+      d[name] = d[name].filter((x) => !matches(x, filter));
+      memPersist();
+      return antes - d[name].length;
+    },
     count: async (filter = {}) => d[name].filter((doc) => matches(doc, filter)).length,
     all: async () => [...d[name]],
   };
@@ -157,6 +163,10 @@ function mongoCollection(name) {
     deleteOne: async (filter) => {
       const res = await coll.deleteOne(toMongoFilter(filter));
       return res.deletedCount > 0;
+    },
+    deleteMany: async (filter) => {
+      const res = await coll.deleteMany(toMongoFilter(filter));
+      return res.deletedCount;
     },
     count: async (filter = {}) => coll.countDocuments(toMongoFilter(filter)),
     all: async () => coll.find({}).toArray(),

@@ -7,4 +7,8 @@ export const painel = {
   analisarEstoque: () => http.post('/estoque/analise'),
   /** @returns {Promise<import('../../models/tipos.js').Auditoria[]>} */
   auditorias: () => http.get('/auditorias'),
+  /** Apaga os registros escolhidos. Em produção exige o token de administrador. */
+  excluirAuditorias: (ids, tokenAdmin = '') => http.post('/auditorias/excluir', { ids }, {
+    cabecalhos: tokenAdmin ? { 'x-admin-token': tokenAdmin } : {},
+  }),
 };

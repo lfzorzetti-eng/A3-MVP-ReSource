@@ -13,7 +13,7 @@ routes → controllers → infrastructure
 |---|---|---|
 | `routes/index.js` | URL → guardas → controller | só a ligação. Nenhuma regra |
 | `controllers/` | regra de cada recurso | validação, montagem da resposta, funções puras exportadas para teste |
-| `controllers/guardas.js` | proteção das rotas | sessão (`requireAuth`), permissão (`requirePermission`), rate limit, `wrap` de async |
+| `controllers/guardas.js` | proteção das rotas | sessão (`requireAuth`), permissão (`requirePermission`), token de admin (`requireAdminToken`), rate limit, `wrap` de async |
 | `infrastructure/` | tudo que fala com fora | `config` (único que lê `process.env`), `db` (MongoDB ou arquivo), `vetores` (TF-IDF), `groq` (LLM + fallback), `sessao` (HMAC), `auditoria` |
 | `entities/` | dados fixos | `perfis.js` (perfis, usuários demo, `can`), `prompts.js` (textos do agente) |
 
@@ -55,6 +55,7 @@ api.painel.empresa()                        // GET  /empresa
 api.painel.dashboard()                      // GET  /dashboard
 api.painel.analisarEstoque()                // POST /estoque/analise
 api.painel.auditorias()                     // GET  /auditorias
+api.painel.excluirAuditorias(ids, token)    // POST /auditorias/excluir (header x-admin-token)
 api.materiais.listar({ q, categoria })      // GET  /materiais
 api.materiais.criar(dados)                  // POST /materiais (exige nome e categoria)
 api.materiais.atualizar(id, dados)          // PUT  /materiais/:id

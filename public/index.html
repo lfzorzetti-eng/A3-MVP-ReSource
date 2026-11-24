@@ -289,11 +289,14 @@
           <h1>Auditoria do agente</h1>
           <p class="sub">RF06 — histórico de análises, consultas e operações (rastreabilidade).</p>
         </div>
-        <button class="btn ghost" id="btnRefreshAudit">Atualizar</button>
+        <div class="actions">
+          <button class="btn danger hidden" id="btnExcluirAudit" disabled>Excluir selecionados</button>
+          <button class="btn ghost" id="btnRefreshAudit">Atualizar</button>
+        </div>
       </div>
       <div class="table-wrap">
         <table class="table" id="tblAudit">
-          <thead><tr><th>Data/hora</th><th>Evento</th><th>Detalhe</th><th>Usuário</th></tr></thead>
+          <thead><tr><th class="hidden" id="colAuditTodos"><input type="checkbox" class="check" id="chkAuditTodos" aria-label="Selecionar todos" /></th><th>Data/hora</th><th>Evento</th><th>Detalhe</th><th>Usuário</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
